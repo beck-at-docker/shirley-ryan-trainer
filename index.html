@@ -488,7 +488,22 @@ function suggestLoad(x, date, week){
   }
   if(!weights.length) return {kind:"first", top:top};
   var w = Math.max.apply(null, weights);
+  var wLow = Math.min.apply(null, weights);
+  var atTop = weights.filter(function(v){ return v === w; }).length;
   var complete = (logged >= x.sets) && (top != null) && (maxed >= x.sets);
+
+  /* Mid-climb: last session carried mixed weights and every set still hit
+     the top of the range — bring one more set up to the heavier weight
+     before touching the weight itself. */
+  if(complete && atTop < x.sets && w > wLow && week < 6){
+    var n = atTop + 1;
+    if(n >= x.sets)
+      return {kind:"up", weight:w, from:prev.date, top:top,
+              why:"Every set hit "+top+" again — the last set comes up too. All "+x.sets+" at "+w+" now."};
+    return {kind:"top", weight:w, hold:wLow, topSets:n, from:prev.date, top:top,
+            why:"Every set hit "+top+" again. Move one more up — "+n+" set"+(n===1?"":"s")+
+                " at "+w+", "+(x.sets-n)+" at "+wLow+"."};
+  }
 
   if(complete && week >= 6)
     return {kind:"hold", weight:w, from:prev.date, top:top,
@@ -496,10 +511,16 @@ function suggestLoad(x, date, week){
                             : "Peak week holds load. You earned the jump; it waits until after the climb."};
   if(complete){
     var pct = Math.round(STEP / w * 100);
+    /* A dumbbell rack jumps 10→15→20, so +5 is the only rung available —
+       but at light weights that rung is a 50% jump. Climb it one set at a
+       time instead of all at once. */
+    if(pct > 15 && x.sets > 1)
+      return {kind:"top", weight:w + STEP, hold:w, topSets:1, from:prev.date, prevWeight:w, top:top, pct:pct,
+              why:"You hit "+top+" on every set at "+w+". But +"+STEP+" is a "+pct+"% jump here and the rack "+
+                  "has no smaller rung — so climb it one set at a time: "+(w+STEP)+" for set 1, "+w+
+                  " for the rest. One more set moves up each session until all "+x.sets+" are at "+(w+STEP)+"."};
     return {kind:"up", weight:w + STEP, from:prev.date, prevWeight:w, top:top, pct:pct,
-            why:"You hit "+top+" on every set at "+w+" lb."+
-                (pct > 15 ? "  ⚠ That's a "+pct+"% jump — a fixed "+STEP+" lb step is coarse at this weight. "+
-                            "If you can't hold "+top+" reps, drop back to "+w+" and add a rep instead." : "")};
+            why:"You hit "+top+" on every set at "+w+"."};
   }
   return {kind:"hold", weight:w, from:prev.date, top:top,
           why: top == null ? "Same as last time."
@@ -507,7 +528,8 @@ function suggestLoad(x, date, week){
 }
 function suggestLabel(sg){
   if(sg.kind === "first") return null;
-  return sg.weight + " lb";
+  if(sg.kind === "top") return sg.weight + " / " + sg.hold;
+  return String(sg.weight);
 }
 
 /* ============ render ============ */
@@ -664,11 +686,23 @@ function renderToday(){
    Tanaka (208 − 0.7·age) rather than 220−age; both are population
    estimates, so the bands are a guide, not a verdict. */
 var AGE = 47;
-var HRMAX = Math.round(208 - 0.7*AGE);
+var HRMAX = Math.round(208 - 0.7*AGE);        // Tanaka, shown for reference only
+var HRKEY = "flights105.hr.v1";
+/* Beck's own bands, not a formula's. A population HRmax estimate does not
+   account for a prescribed stimulant, which raises exercise heart rate
+   independent of effort — so these are set by observation and editable
+   on the Plan tab. */
+var HR_DEFAULT = {easyLo:140, easyHi:158, hardLo:160, recHi:138};
+function hrCfg(){
+  try{ var r = localStorage.getItem(HRKEY); if(r) return JSON.parse(r); }catch(e){}
+  return HR_DEFAULT;
+}
+function setHrCfg(c){ try{ localStorage.setItem(HRKEY, JSON.stringify(c)); }catch(e){} }
 function hrBand(kind){
-  if(kind === "easy")     return {lo:Math.round(HRMAX*0.70), hi:Math.round(HRMAX*0.80), name:"easy / aerobic"};
-  if(kind === "recovery") return {lo:Math.round(HRMAX*0.60), hi:Math.round(HRMAX*0.72), name:"recovery"};
-  return {lo:Math.round(HRMAX*0.85), hi:Math.round(HRMAX*0.93), name:"tempo → threshold"};
+  var c = hrCfg();
+  if(kind === "easy")     return {lo:c.easyLo, hi:c.easyHi, name:"easy"};
+  if(kind === "recovery") return {lo:0,        hi:c.recHi,  name:"recovery"};
+  return {lo:c.hardLo, hi:220, name:"quality"};
 }
 var LAST_STAIR = null;
 function renderHR(date, st){
@@ -684,15 +718,16 @@ function renderHR(date, st){
   var cls = "hrbox";
   if(bpm){
     var pct = Math.round(bpm/HRMAX*100);
-    if(bpm > b.hi){
+    if(kind !== "hard" && bpm > b.hi){
       cls = "hrbox over";
-      txt = '<strong>'+bpm+' bpm — '+pct+'% of max.</strong> That is above the '+b.lo+'–'+b.hi+
-            ' band this session asked for. '+
-            (kind === "hard" ? "Fine on a quality day if it was meant to hurt."
-             : "An easy day at this heart rate is a hard day with an easy label — drop a level next time, not a flight.");
+      txt = '<strong>'+bpm+' bpm</strong> — above your '+b.lo+'–'+b.hi+' easy band. '+
+            'Worth a look, but trust how it felt: your RPE is the better signal here.';
+    } else if(kind === "hard" && bpm < b.lo){
+      cls = "hrbox over";
+      txt = '<strong>'+bpm+' bpm</strong> — under '+b.lo+' on a quality day. There was more in the tank.';
     } else {
       cls = "hrbox ok";
-      txt = '<strong>'+bpm+' bpm — '+pct+'% of max.</strong> Inside the '+b.lo+'–'+b.hi+' band. This is what the day was for.';
+      txt = '<strong>'+bpm+' bpm</strong> — where this session should sit.';
     }
   }
   box.className = cls;
@@ -752,9 +787,15 @@ function exCard(x, idx, date, e, isWarm){
         'Pick a load you can do <strong>all '+x.sets+' sets</strong> at the bottom of the range with clean form. '+
         'Go lighter than feels right — changing it mid-session is correct. Whatever you log becomes the target next time.</div>';
     } else {
+      var ttl = sg.kind === "up"  ? "Go up — add "+STEP
+              : sg.kind === "top" ? "Move one set up"
+              : "Hold";
+      var big = sg.kind === "top"
+        ? sg.weight+'<span>&times;'+sg.topSets+'</span> &nbsp;'+sg.hold+'<span>&times;'+(x.sets-sg.topSets)+'</span>'
+        : sg.weight+'<span>lb</span>';
       call.innerHTML =
-        '<div class="ct">'+(sg.kind === "up" ? "Go up — add "+STEP+" lb" : "Hold")+'</div>'+
-        '<div class="cbig">'+sg.weight+'<span>lb</span></div>'+
+        '<div class="ct">'+ttl+'</div>'+
+        '<div class="cbig">'+big+'</div>'+
         '<div class="cw">'+esc(sg.why)+'</div>';
     }
     body.appendChild(call);
@@ -776,18 +817,22 @@ function exCard(x, idx, date, e, isWarm){
     body.appendChild(grid);
 
     if(sg.kind !== "first"){
-      var fill = el("button","btn ghost fill","Put "+sg.weight+" lb in every set");
+      var fillTxt = sg.kind === "top"
+        ? "Fill "+sg.weight+" \u00d7"+sg.topSets+", then "+sg.hold
+        : "Put "+sg.weight+" in every set";
+      var fill = el("button","btn ghost fill", fillTxt);
       fill.type = "button";
       fill.onclick = function(){
         var en = entry(date);
         if(!en.gym[x.id]) en.gym[x.id] = [];
         for(var i=0;i<wInputs.length;i++){
-          wInputs[i].value = sg.weight;
+          var v = (sg.kind === "top" && i >= sg.topSets) ? sg.hold : sg.weight;
+          wInputs[i].value = v;
           if(!en.gym[x.id][i]) en.gym[x.id][i] = {};
-          en.gym[x.id][i].w = String(sg.weight);
+          en.gym[x.id][i].w = String(v);
         }
         persist();
-        toast("Set to "+sg.weight+" lb — log the reps as you go");
+        toast("Weights set — log the reps as you go");
       };
       body.appendChild(fill);
     }
@@ -994,13 +1039,33 @@ function renderPlan(){
     "<strong>Nothing new in taper week.</strong> No new exercise, no new load, no last hard session."));
   root.appendChild(s);
 
+  var sh = el("section","block");
+  sh.appendChild(el("div","blockhead",'<span class="num">♥</span><h2>Your heart-rate bands</h2>'));
+  var hc = el("div","stair");
+  hc.appendChild(el("p","recipe",
+    "Set by observation, not by formula. A population HRmax estimate (yours computes to "+HRMAX+
+    ") doesn't account for a prescribed stimulant, which raises exercise heart rate independent of effort. "+
+    "<strong>Your RPE is the primary signal; these bands are the cross-check.</strong>"));
+  var c = hrCfg();
+  var r1 = el("div","row2");
+  r1.appendChild(numField("Easy day — from","hr-el", c.easyLo, function(v){ var k=hrCfg(); k.easyLo=+v||0; setHrCfg(k); }));
+  r1.appendChild(numField("Easy day — up to","hr-eh", c.easyHi, function(v){ var k=hrCfg(); k.easyHi=+v||0; setHrCfg(k); }));
+  hc.appendChild(r1);
+  var r2 = el("div","row2");
+  r2.appendChild(numField("Quality day — at least","hr-hl", c.hardLo, function(v){ var k=hrCfg(); k.hardLo=+v||0; setHrCfg(k); }));
+  r2.appendChild(numField("Recovery — under","hr-rh", c.recHi, function(v){ var k=hrCfg(); k.recHi=+v||0; setHrCfg(k); }));
+  hc.appendChild(r2);
+  sh.appendChild(hc);
+  root.appendChild(sh);
+
   var s2 = el("section","block");
   s2.appendChild(el("div","blockhead",'<span class="num">▲</span><h2>Event morning</h2>'));
   var tbl = el("div","stair");
   tbl.innerHTML =
     '<p class="recipe"><strong>8:00 AM wave.</strong> You train at 4–5 AM, so the climb is three hours later than every session you have ever done. That gap is the thing to rehearse.</p>'+
     '<p class="recipe">~4:30 wake, <strong>don\'t train</strong> · 5:15 breakfast · hydrate then stop by 7:15 · 7:30 hand off gear and warm up · <strong>8:00 climb, dry</strong>.</p>'+
-    '<p class="recipe"><strong>Nothing can be carried into the stairwell — water included.</strong> One light layer; the shaft gets hot and still. Event start is listed as 7:00 AM, so check when check-in closes.</p>';
+    '<p class="recipe"><strong>Nothing can be carried into the stairwell — water included.</strong> One light layer; the shaft gets hot and still. Event start is listed as 7:00 AM, so check when check-in closes.</p>'+
+    '<p class="recipe">A hot enclosed shaft, a maximal effort and a stimulant all push the same direction on heat and heart rate. Worth one question to your prescriber before race day — not a reason to change anything on your own.</p>';
   s2.appendChild(tbl);
   root.appendChild(s2);
 }

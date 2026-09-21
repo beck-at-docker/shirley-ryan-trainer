@@ -1,6 +1,6 @@
 /* 105 Flights — offline shell.
    Bump CACHE on every deploy; the old cache is dropped on activate. */
-var CACHE = "flights105-v4";
+var CACHE = "flights105-v5";
 var ASSETS = ["./", "index.html", "manifest.webmanifest",
               "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 
