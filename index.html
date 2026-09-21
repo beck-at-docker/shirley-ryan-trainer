@@ -151,6 +151,11 @@ section.block{margin-top:26px}
 .call .cbig span{font-size:15px;font-weight:400;color:var(--ink-3);margin-left:5px}
 .call .cw{font-size:13px;color:var(--ink-2)}
 .btn.fill{width:100%;margin-top:11px;padding:11px}
+.hrbox{margin-top:12px;padding:10px 12px;border-radius:7px;font-size:13px;
+  background:var(--panel-2);color:var(--ink-2);border-left:3px solid var(--line-2)}
+.hrbox.ok{background:var(--done-soft);border-left-color:var(--done)}
+.hrbox.over{background:var(--hard-soft);border-left-color:var(--hard)}
+.hrbox strong{color:var(--ink)}
 .cue{font-size:13px;color:var(--ink-2);margin:11px 0 0;padding-left:9px;border-left:2px solid var(--line-2)}
 .setup{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin-top:7px}
 .vid{display:inline-block;margin-top:9px;font-size:12.5px;color:var(--accent);text-decoration:none;
@@ -438,7 +443,7 @@ function entry(date){
 function hasContent(e){
   if(!e) return false;
   if(e.notes || e.protein) return true;
-  if(e.stairs && (e.stairs.flights||e.stairs.level||e.stairs.min||e.stairs.rpe)) return true;
+  if(e.stairs && (e.stairs.flights||e.stairs.level||e.stairs.min||e.stairs.rpe||e.stairs.bpm)) return true;
   for(var k in e.gym){ var arr=e.gym[k]; for(var i=0;i<arr.length;i++){ if(arr[i]&&(arr[i].w||arr[i].r)) return true; } }
   return false;
 }
@@ -489,9 +494,13 @@ function suggestLoad(x, date, week){
     return {kind:"hold", weight:w, from:prev.date, top:top,
             why: week === 7 ? "Taper — same weight as last week, and stop well short."
                             : "Peak week holds load. You earned the jump; it waits until after the climb."};
-  if(complete)
-    return {kind:"up", weight:w + STEP, from:prev.date, prevWeight:w, top:top,
-            why:"You hit "+top+" on every set at "+w+" lb."};
+  if(complete){
+    var pct = Math.round(STEP / w * 100);
+    return {kind:"up", weight:w + STEP, from:prev.date, prevWeight:w, top:top, pct:pct,
+            why:"You hit "+top+" on every set at "+w+" lb."+
+                (pct > 15 ? "  ⚠ That's a "+pct+"% jump — a fixed "+STEP+" lb step is coarse at this weight. "+
+                            "If you can't hold "+top+" reps, drop back to "+w+" and add a rep instead." : "")};
+  }
   return {kind:"hold", weight:w, from:prev.date, top:top,
           why: top == null ? "Same as last time."
              : "Stay here until all "+x.sets+" sets reach "+top+" reps."};
@@ -607,11 +616,15 @@ function renderToday(){
   card.appendChild(sg);
   var sg2 = el("div","row2");
   sg2.appendChild(numField("Minutes","st-min", e.stairs.min, function(v){ entry(date).stairs.min=v; persist(); }));
-  sg2.appendChild(numField("RPE 1–10","st-rpe", e.stairs.rpe, function(v){ entry(date).stairs.rpe=v; persist(); }));
+  sg2.appendChild(numField("Avg bpm","st-bpm", e.stairs.bpm, function(v){ entry(date).stairs.bpm=v; renderHR(date); persist(); }));
   card.appendChild(sg2);
-  if(wk === 1){
-    card.appendChild(el("p","lastwk","Logging the real minutes this week is what settles whether 100 flights at L6 fits the clock."));
-  }
+  var sg3 = el("div","row2");
+  sg3.appendChild(numField("RPE 1–10","st-rpe", e.stairs.rpe, function(v){ entry(date).stairs.rpe=v; persist(); }));
+  card.appendChild(sg3);
+
+  var hrBox = el("div","hrbox"); hrBox.id = "hrbox";
+  card.appendChild(hrBox);
+  renderHR(date, st);
   s1.appendChild(card);
   root.appendChild(s1);
 
@@ -622,7 +635,9 @@ function renderToday(){
     h2.innerHTML = '<span class="num">2</span><h2>Shoulder prep</h2><span class="sub">3 min · no bike</span>';
     s2.appendChild(h2);
     s2.appendChild(el("div","notice",
-      "You're already warm from the stairs. Your rotator cuff isn't — climbing warms nothing above the ribcage."));
+      "<strong>If you climbed first</strong>, skip the general warm-up — you're warm. "+
+      "<strong>If you're lifting first</strong>, add 5 minutes easy on a bike before these.<br>"+
+      "Either way the band work stays: climbing warms nothing above the ribcage, and the cuff is as cold at flight 100 as at flight 1."));
     for(var i=0;i<WARM_UP.length;i++) s2.appendChild(exCard(WARM_UP[i], i, date, e, true));
     root.appendChild(s2);
 
@@ -643,6 +658,45 @@ function renderToday(){
   }
 
   renderNotes(root, date, e);
+}
+
+/* ---------- heart rate ----------
+   Tanaka (208 − 0.7·age) rather than 220−age; both are population
+   estimates, so the bands are a guide, not a verdict. */
+var AGE = 47;
+var HRMAX = Math.round(208 - 0.7*AGE);
+function hrBand(kind){
+  if(kind === "easy")     return {lo:Math.round(HRMAX*0.70), hi:Math.round(HRMAX*0.80), name:"easy / aerobic"};
+  if(kind === "recovery") return {lo:Math.round(HRMAX*0.60), hi:Math.round(HRMAX*0.72), name:"recovery"};
+  return {lo:Math.round(HRMAX*0.85), hi:Math.round(HRMAX*0.93), name:"tempo → threshold"};
+}
+var LAST_STAIR = null;
+function renderHR(date, st){
+  if(st) LAST_STAIR = st;
+  var box = document.getElementById("hrbox");
+  if(!box) return;
+  var kind = (LAST_STAIR && LAST_STAIR.hard) ? "hard"
+           : (LAST_STAIR && LAST_STAIR.flights <= 60) ? "recovery" : "easy";
+  var b = hrBand(kind);
+  var bpm = parseFloat((entry(date).stairs||{}).bpm);
+  var txt = '<strong>Target '+b.lo+'–'+b.hi+' bpm</strong> ('+b.name+
+            '). Estimated max '+HRMAX+'.';
+  var cls = "hrbox";
+  if(bpm){
+    var pct = Math.round(bpm/HRMAX*100);
+    if(bpm > b.hi){
+      cls = "hrbox over";
+      txt = '<strong>'+bpm+' bpm — '+pct+'% of max.</strong> That is above the '+b.lo+'–'+b.hi+
+            ' band this session asked for. '+
+            (kind === "hard" ? "Fine on a quality day if it was meant to hurt."
+             : "An easy day at this heart rate is a hard day with an easy label — drop a level next time, not a flight.");
+    } else {
+      cls = "hrbox ok";
+      txt = '<strong>'+bpm+' bpm — '+pct+'% of max.</strong> Inside the '+b.lo+'–'+b.hi+' band. This is what the day was for.';
+    }
+  }
+  box.className = cls;
+  box.innerHTML = txt;
 }
 
 function finishTime(total){
@@ -856,6 +910,7 @@ function summarise(date, e){
     if(s.flights) bits.push(s.flights+" flights");
     if(s.level) bits.push("L"+s.level);
     if(s.min) bits.push(s.min+" min");
+    if(s.bpm) bits.push(s.bpm+" bpm avg");
     if(s.rpe) bits.push("RPE "+s.rpe);
     out.push("Stairs: "+bits.join(" · "));
   }
