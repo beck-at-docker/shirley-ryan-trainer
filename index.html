@@ -134,7 +134,23 @@ section.block{margin-top:26px}
 .tick{width:17px;height:17px;border-radius:50%;border:1.5px solid var(--line-2);flex:none;display:grid;place-items:center;
   font-size:10px;color:transparent}
 .ex.done .tick{background:var(--done);border-color:var(--done);color:#fff}
+.target{font-family:var(--display);font-size:15px;font-weight:500;color:var(--ink-2);
+  background:var(--panel-2);border-radius:5px;padding:2px 7px;flex:none;font-variant-numeric:tabular-nums}
+.target.up{background:var(--accent);color:var(--accent-ink)}
 .exbody{padding:0 14px 14px;border-top:1px solid var(--line)}
+
+/* what to lift today */
+.call{margin-top:12px;padding:12px 14px;border-radius:8px;background:var(--panel-2);
+  border-left:3px solid var(--line-2)}
+.call.up{background:var(--accent-soft);border-left-color:var(--accent)}
+.call.first{background:var(--sunk)}
+.call .ct{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.call.up .ct{color:var(--accent)}
+.call .cbig{font-family:var(--display);font-size:40px;font-weight:500;line-height:1;margin:3px 0 5px;
+  font-variant-numeric:tabular-nums}
+.call .cbig span{font-size:15px;font-weight:400;color:var(--ink-3);margin-left:5px}
+.call .cw{font-size:13px;color:var(--ink-2)}
+.btn.fill{width:100%;margin-top:11px;padding:11px}
 .cue{font-size:13px;color:var(--ink-2);margin:11px 0 0;padding-left:9px;border-left:2px solid var(--line-2)}
 .setup{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin-top:7px}
 .vid{display:inline-block;margin-top:9px;font-size:12.5px;color:var(--accent);text-decoration:none;
@@ -435,6 +451,56 @@ function lastLoggedFor(exId, beforeDate){
   return null;
 }
 
+/* ---------- double progression ----------
+   The top of the prescribed rep range, or null when the prescription
+   isn't rep-based ("40 m", "30 s / side"). */
+function topReps(reps){
+  var r = String(reps);
+  if(/[ms]\s*(\/|$)/.test(r) && !/\d\s*[–-]/.test(r) && !/^\d+\s*(\/|$)/.test(r)) return null;
+  if(/\bm\b/.test(r) || /\bs\b/.test(r)) return null;
+  var m = r.match(/(\d+)\s*[–-]\s*(\d+)/);       // "8–12"
+  if(m) return +m[2];
+  m = r.match(/(\d+)/);                          // "15", "12 / side"
+  return m ? +m[1] : null;
+}
+
+var STEP = 5;   // smallest useful machine increment, lb
+
+/* What to lift today, from what was lifted last time.
+   Hold the weight until every prescribed set reaches the top of the
+   range; then add one step. Weeks 6 and 7 never add — the block holds
+   load through peak and taper. */
+function suggestLoad(x, date, week){
+  var top = topReps(x.reps);
+  var prev = lastLoggedFor(x.id, date);
+  if(!prev) return {kind:"first", top:top};
+
+  var weights = [], maxed = 0, logged = 0;
+  for(var i=0;i<x.sets;i++){
+    var s = prev.sets[i];
+    if(s && s.w){ logged++; weights.push(parseFloat(s.w));
+      if(top != null && s.r && parseFloat(s.r) >= top) maxed++; }
+  }
+  if(!weights.length) return {kind:"first", top:top};
+  var w = Math.max.apply(null, weights);
+  var complete = (logged >= x.sets) && (top != null) && (maxed >= x.sets);
+
+  if(complete && week >= 6)
+    return {kind:"hold", weight:w, from:prev.date, top:top,
+            why: week === 7 ? "Taper — same weight as last week, and stop well short."
+                            : "Peak week holds load. You earned the jump; it waits until after the climb."};
+  if(complete)
+    return {kind:"up", weight:w + STEP, from:prev.date, prevWeight:w, top:top,
+            why:"You hit "+top+" on every set at "+w+" lb."};
+  return {kind:"hold", weight:w, from:prev.date, top:top,
+          why: top == null ? "Same as last time."
+             : "Stay here until all "+x.sets+" sets reach "+top+" reps."};
+}
+function suggestLabel(sg){
+  if(sg.kind === "first") return null;
+  return sg.weight + " lb";
+}
+
 /* ============ render ============ */
 function el(tag, cls, html){ var n=document.createElement(tag); if(cls)n.className=cls;
   if(html!=null)n.innerHTML=html; return n; }
@@ -601,11 +667,15 @@ function exCard(x, idx, date, e, isWarm){
   for(var i=0;i<x.sets;i++){ if(sets[i] && (sets[i].w || sets[i].r)) filled++; }
   if(filled >= x.sets) card.className += " done";
 
+  var sg = isWarm ? {kind:"first"} : suggestLoad(x, date, weekOf(date));
+  var lbl = suggestLabel(sg);
+
   var head = el("div","exhead");
   head.innerHTML =
     '<span class="idx">'+(isWarm?"·":(idx+1))+'</span>'+
     '<span class="exname"><span class="n">'+esc(x.n)+'</span>'+
       '<span class="p">'+x.sets+' × '+esc(x.reps)+'</span></span>'+
+    (lbl ? '<span class="target'+(sg.kind==="up"?" up":"")+'">'+esc(lbl)+'</span>' : '')+
     '<span class="tick">✓</span><span class="chev">›</span>';
   card.appendChild(head);
 
@@ -621,18 +691,53 @@ function exCard(x, idx, date, e, isWarm){
   }
 
   if(!isWarm){
+    /* --- what to lift today --- */
+    var call = el("div","call" + (sg.kind === "up" ? " up" : sg.kind === "first" ? " first" : ""));
+    if(sg.kind === "first"){
+      call.innerHTML = '<div class="ct">Find your weight</div><div class="cw">'+
+        'Pick a load you can do <strong>all '+x.sets+' sets</strong> at the bottom of the range with clean form. '+
+        'Go lighter than feels right — changing it mid-session is correct. Whatever you log becomes the target next time.</div>';
+    } else {
+      call.innerHTML =
+        '<div class="ct">'+(sg.kind === "up" ? "Go up — add "+STEP+" lb" : "Hold")+'</div>'+
+        '<div class="cbig">'+sg.weight+'<span>lb</span></div>'+
+        '<div class="cw">'+esc(sg.why)+'</div>';
+    }
+    body.appendChild(call);
+
     var grid = el("div","sets");
     grid.appendChild(el("div","hdr",""));
     grid.appendChild(el("div","hdr","Weight"));
     grid.appendChild(el("div","hdr","Reps"));
+    var wInputs = [];
     for(var s=0;s<x.sets;s++){
       (function(si){
         grid.appendChild(el("div","slab","Set "+(si+1)));
-        grid.appendChild(setInput(date, x, si, "w"));
+        var wc = setInput(date, x, si, "w");
+        wInputs.push(wc.firstChild);
+        grid.appendChild(wc);
         grid.appendChild(setInput(date, x, si, "r"));
       })(s);
     }
     body.appendChild(grid);
+
+    if(sg.kind !== "first"){
+      var fill = el("button","btn ghost fill","Put "+sg.weight+" lb in every set");
+      fill.type = "button";
+      fill.onclick = function(){
+        var en = entry(date);
+        if(!en.gym[x.id]) en.gym[x.id] = [];
+        for(var i=0;i<wInputs.length;i++){
+          wInputs[i].value = sg.weight;
+          if(!en.gym[x.id][i]) en.gym[x.id][i] = {};
+          en.gym[x.id][i].w = String(sg.weight);
+        }
+        persist();
+        toast("Set to "+sg.weight+" lb — log the reps as you go");
+      };
+      body.appendChild(fill);
+    }
+
     var prev = lastLoggedFor(x.id, date);
     if(prev){
       var bits = prev.sets.filter(function(p){return p&&p.w;})
