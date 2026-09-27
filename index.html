@@ -92,6 +92,10 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
 /* ---------- day head ---------- */
 .dayhead{display:flex;align-items:flex-end;gap:14px;padding:20px 0 14px;border-bottom:1px solid var(--line)}
 .bigday{font-family:var(--display);font-weight:300;font-size:clamp(38px,12vw,60px);line-height:.85;letter-spacing:-.01em}
+.daynav{flex:none;align-self:center;width:34px;height:34px;display:grid;place-items:center;
+  background:none;border:1px solid var(--line);border-radius:8px;color:var(--ink-2);font-size:20px;
+  line-height:1;cursor:pointer}
+.daynav:active{transform:translateY(1px)}
 .daymeta{padding-bottom:4px}
 .daymeta .wk{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
 .daymeta .ph{font-size:13px;color:var(--ink-2)}
@@ -568,6 +572,13 @@ function renderRail(){
   }
 }
 
+function shiftDay(delta){
+  var d = parse(VIEW_DATE);
+  d.setDate(d.getDate()+delta);
+  VIEW_DATE = ymd(d);
+  show("today");
+}
+
 function renderToday(){
   var root = document.getElementById("view-today");
   root.innerHTML = "";
@@ -578,7 +589,15 @@ function renderToday(){
 
   /* ---- head ---- */
   var head = el("div","dayhead");
+  var prevBtn = el("button","daynav","‹");
+  prevBtn.type = "button"; prevBtn.setAttribute("aria-label","Previous day");
+  prevBtn.onclick = function(){ shiftDay(-1); };
+  head.appendChild(prevBtn);
   head.appendChild(el("div","bigday", DAYNAME[wd].slice(0,3).toUpperCase()));
+  var nextBtn = el("button","daynav","›");
+  nextBtn.type = "button"; nextBtn.setAttribute("aria-label","Next day");
+  nextBtn.onclick = function(){ shiftDay(1); };
+  head.appendChild(nextBtn);
   var meta = el("div","daymeta");
   if(wk === 0){
     meta.innerHTML = '<div class="wk">Before the block</div><div class="ph">'+pretty(date)+'</div>';
