@@ -262,7 +262,7 @@ var PHASES = [
   {w:1, name:"Baseline", note:"Find your working weights at the bottom of each rep range. Log every number — this week is the reference everything later is measured against."},
   {w:2, name:"Baseline", note:"Repeat week 1's weights, or add the smallest increment if every set hit the top of its range."},
   {w:3, name:"Build",    note:"Double progression starts. Add load, not sets."},
-  {w:4, name:"Build",    note:"Highest combined load of the block. Watch for drifting resting HR, easy days that don't feel easy, degrading sleep — any two, take Sunday off."},
+  {w:4, name:"Build",    note:"Highest combined load of the block. Watch for drifting resting HR, easy days that don't feel easy, degrading sleep — any two, take Saturday off."},
   {w:5, name:"Build",    note:"Last week to add weight to anything. Saturday runs late morning to rehearse the timing offset."},
   {w:6, name:"Peak",     note:"Dress rehearsal Saturday. Hold every weight, drop one set from each accessory."},
   {w:7, name:"Taper",    note:"Nothing new enters this week. No new exercise, no new load, no last hard session."}
@@ -345,6 +345,19 @@ var DAYS = {
   6:{gym:null, list:[], gymMin:0, stair:"tempo"},
   0:{gym:null, list:[], gymMin:0, stair:"recovery"}
 };
+
+/* Regular weeks (1,2,4) swap the weekend: Saturday recovery, Sunday
+   tempo/quality. Weeks 3,5,6,7 carry the split rehearsals, dress
+   rehearsal and taper, which stay anchored to Saturday so none of them
+   lands on Sunday — including event day itself, Sun 8 Nov (week 7). */
+function stairKindFor(wd, week){
+  var special = week===3 || week===5 || week===6 || week===7;
+  if(!special){
+    if(wd===6) return "recovery";
+    if(wd===0) return "tempo";
+  }
+  return DAYS[wd].stair;
+}
 
 function stairSession(kind, week){
   if(kind==="easy") return {
@@ -607,7 +620,7 @@ function renderToday(){
   head.appendChild(meta);
 
   var plan = DAYS[wd];
-  var st = wk === 0 ? null : stairSession(plan.stair, wk);
+  var st = wk === 0 ? null : stairSession(stairKindFor(wd, wk), wk);
   var total = 0;
   if(st){ total = st.min + (plan.gym ? plan.gymMin + 3 : 0); }
   if(total){
