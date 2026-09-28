@@ -334,6 +334,12 @@ var WARM_UP = [
   ex("ber","Band external rotation",1,"15","Light band","Elbow pinned to the ribs.",V.ber),
   ex("spl","Scapular pull",1,"10","Lat machine, arms straight","Just the shoulder blades. Arms don't bend.",null)
 ];
+/* Always rendered, every day — added 2026-09-28 at Beck's request. One
+   shared id each so progression/history is a single continuous thread
+   regardless of which day it lands on, rather than per-day threads like
+   the lifting exercises above. */
+var CALF_EX  = ex("crx","Standing calf raise",3,"12–15","Machine, or bodyweight off a step edge if none free","Full stretch at the bottom, pause at the top.",V.cr);
+var YOGA_EX  = ex("yoga","Yoga",1,"20–30 min","Mat, quiet space","Any beginner mobility/vinyasa flow — hips, ankles, thoracic spine. Skip anything overhead-loaded or a deep chest-opener stretch behind the torso line.",null);
 
 // weekday 0=Sun..6=Sat
 var DAYS = {
@@ -622,7 +628,7 @@ function renderToday(){
   var plan = DAYS[wd];
   var st = wk === 0 ? null : stairSession(stairKindFor(wd, wk), wk);
   var total = 0;
-  if(st){ total = st.min + (plan.gym ? plan.gymMin + 3 : 0); }
+  if(st){ total = st.min + (plan.gym ? plan.gymMin + 3 : 0) + 3 + (wd === 6 ? 25 : 0); }
   if(total){
     var est = el("div","est");
     est.innerHTML = '<div class="n">'+total+'</div><div class="l">min total</div>';
@@ -711,6 +717,22 @@ function renderToday(){
     root.appendChild(s3);
   }
 
+  /* ---- yoga (Saturdays) + calves (every day) ---- */
+  var extraNum = plan.gym ? 4 : 2;
+  if(wd === 6){
+    var sYoga = el("section","block");
+    sYoga.appendChild(el("div","blockhead",
+      '<span class="num">'+extraNum+'</span><h2>Yoga</h2><span class="sub">20–30 min</span>'));
+    sYoga.appendChild(exCard(YOGA_EX, 0, date, e, false));
+    root.appendChild(sYoga);
+    extraNum++;
+  }
+  var sCalf = el("section","block");
+  sCalf.appendChild(el("div","blockhead",
+    '<span class="num">'+extraNum+'</span><h2>Calves</h2><span class="sub">~3 min</span>'));
+  sCalf.appendChild(exCard(CALF_EX, 0, date, e, false));
+  root.appendChild(sCalf);
+
   renderNotes(root, date, e);
 }
 
@@ -787,6 +809,9 @@ function exCard(x, idx, date, e, isWarm){
   var filled = 0;
   for(var i=0;i<x.sets;i++){ if(sets[i] && (sets[i].w || sets[i].r)) filled++; }
   if(filled >= x.sets) card.className += " done";
+  /* rows actually rendered — at least the prescribed count, or however many
+     are already logged if Beck did extra sets beyond the prescription */
+  var rowCount = Math.max(x.sets, sets.length);
 
   var sg = isWarm ? {kind:"first"} : suggestLoad(x, date, weekOf(date));
   var lbl = suggestLabel(sg);
@@ -837,7 +862,7 @@ function exCard(x, idx, date, e, isWarm){
     grid.appendChild(el("div","hdr","Weight"));
     grid.appendChild(el("div","hdr","Reps"));
     var wInputs = [];
-    for(var s=0;s<x.sets;s++){
+    for(var s=0;s<rowCount;s++){
       (function(si){
         grid.appendChild(el("div","slab","Set "+(si+1)));
         var wc = setInput(date, x, si, "w");
@@ -847,6 +872,19 @@ function exCard(x, idx, date, e, isWarm){
       })(s);
     }
     body.appendChild(grid);
+
+    var addSet = el("button","btn ghost","+ Add set");
+    addSet.type = "button";
+    addSet.onclick = function(){
+      var si = rowCount++;
+      grid.appendChild(el("div","slab","Set "+(si+1)));
+      var wc = setInput(date, x, si, "w");
+      wInputs.push(wc.firstChild);
+      grid.appendChild(wc);
+      grid.appendChild(setInput(date, x, si, "r"));
+      wInputs[wInputs.length-1].focus();
+    };
+    body.appendChild(addSet);
 
     if(sg.kind !== "first"){
       var fillTxt = sg.kind === "top"
@@ -975,7 +1013,7 @@ function renderLog(){
 }
 
 function allExercises(){
-  var all = {}, lists=[WARM_UP,UPPER_A,LOWER,UPPER_B,FULL,CORE];
+  var all = {}, lists=[WARM_UP,UPPER_A,LOWER,UPPER_B,FULL,CORE,[CALF_EX,YOGA_EX]];
   for(var i=0;i<lists.length;i++) for(var j=0;j<lists[i].length;j++) all[lists[i][j].id]=lists[i][j];
   return all;
 }
