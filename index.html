@@ -628,7 +628,7 @@ function renderToday(){
   var plan = DAYS[wd];
   var st = wk === 0 ? null : stairSession(stairKindFor(wd, wk), wk);
   var total = 0;
-  if(st){ total = st.min + (plan.gym ? plan.gymMin + 3 : 0) + 3 + (wd === 6 ? 25 : 0); }
+  if(st){ total = st.min + (plan.gym ? plan.gymMin + 3 : 0) + (wd === 2 ? 0 : 3) + (wd === 6 ? 25 : 0); }
   if(total){
     var est = el("div","est");
     est.innerHTML = '<div class="n">'+total+'</div><div class="l">min total</div>';
@@ -727,11 +727,15 @@ function renderToday(){
     root.appendChild(sYoga);
     extraNum++;
   }
-  var sCalf = el("section","block");
-  sCalf.appendChild(el("div","blockhead",
-    '<span class="num">'+extraNum+'</span><h2>Calves</h2><span class="sub">~3 min</span>'));
-  sCalf.appendChild(exCard(CALF_EX, 0, date, e, false));
-  root.appendChild(sCalf);
+  /* Tuesday's Lower session already has its own standing calf raise (id "cr") —
+     skip the shared block there so it doesn't show twice. */
+  if(wd !== 2){
+    var sCalf = el("section","block");
+    sCalf.appendChild(el("div","blockhead",
+      '<span class="num">'+extraNum+'</span><h2>Calves</h2><span class="sub">~3 min</span>'));
+    sCalf.appendChild(exCard(CALF_EX, 0, date, e, false));
+    root.appendChild(sCalf);
+  }
 
   renderNotes(root, date, e);
 }
