@@ -466,7 +466,7 @@ function entry(date){
 function hasContent(e){
   if(!e) return false;
   if(e.notes || e.protein) return true;
-  if(e.stairs && (e.stairs.flights||e.stairs.level||e.stairs.min||e.stairs.rpe||e.stairs.bpm)) return true;
+  if(e.stairs && (e.stairs.flights||e.stairs.level||e.stairs.min||e.stairs.rpe||e.stairs.bpm||e.stairs.notes)) return true;
   for(var k in e.gym){ var arr=e.gym[k]; for(var i=0;i<arr.length;i++){ if(arr[i]&&(arr[i].w||arr[i].r)) return true; } }
   return false;
 }
@@ -681,6 +681,12 @@ function renderToday(){
   var sg3 = el("div","row2");
   sg3.appendChild(numField("RPE 1–10","st-rpe", e.stairs.rpe, function(v){ entry(date).stairs.rpe=v; persist(); }));
   card.appendChild(sg3);
+  var snf = el("label","field");
+  snf.innerHTML = '<span>Stairs notes — intervals, level changes, anything the numbers miss</span>';
+  var sta = document.createElement("textarea");
+  sta.rows = 2; sta.id="st-notes"; sta.value = e.stairs.notes||"";
+  sta.addEventListener("input", function(){ entry(date).stairs.notes = sta.value; persist(); });
+  snf.appendChild(sta); card.appendChild(snf);
 
   var hrBox = el("div","hrbox"); hrBox.id = "hrbox";
   card.appendChild(hrBox);
@@ -1024,14 +1030,14 @@ function allExercises(){
 function summarise(date, e){
   var all = allExercises(), out = [];
   var s = e.stairs||{};
-  if(s.flights||s.level||s.min||s.rpe){
+  if(s.flights||s.level||s.min||s.rpe||s.notes){
     var bits = [];
     if(s.flights) bits.push(s.flights+" flights");
     if(s.level) bits.push("L"+s.level);
     if(s.min) bits.push(s.min+" min");
     if(s.bpm) bits.push(s.bpm+" bpm avg");
     if(s.rpe) bits.push("RPE "+s.rpe);
-    out.push("Stairs: "+bits.join(" · "));
+    out.push("Stairs: "+bits.join(" · ")+(s.notes ? (bits.length?" — ":"")+s.notes : ""));
   }
   for(var id in e.gym){
     var arr = e.gym[id], parts = [];
