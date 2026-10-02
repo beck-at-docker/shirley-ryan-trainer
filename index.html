@@ -280,7 +280,8 @@ var V = {
   rpd:"https://www.youtube.com/watch?v=v0rJuhEa59c", rp:"https://www.youtube.com/watch?v=d-ySLTHUgQA",
   lp:"https://www.youtube.com/watch?v=8nm863C0c60",  pp:"https://www.youtube.com/watch?v=xeFp4MXad98",
   fc:"https://www.youtube.com/watch?v=lLAw6fUccKA",  db:"https://www.youtube.com/watch?v=bxn9FBrt4-A",
-  bpa:"https://www.youtube.com/watch?v=D-3bRfprMGI", ber:"https://www.youtube.com/watch?v=4HqMXMn3FBk"
+  bpa:"https://www.youtube.com/watch?v=D-3bRfprMGI", ber:"https://www.youtube.com/watch?v=4HqMXMn3FBk",
+  yoga:"https://www.youtube.com/watch?v=LNOucekw2co", yogas:"https://www.youtube.com/watch?v=vhLbp8ibmEE"
 };
 
 function ex(id,n,sets,reps,setup,cue,v,flag){
@@ -339,7 +340,15 @@ var WARM_UP = [
    regardless of which day it lands on, rather than per-day threads like
    the lifting exercises above. */
 var CALF_EX  = ex("crx","Standing calf raise",3,"12–15","Machine, or bodyweight off a step edge if none free","Full stretch at the bottom, pause at the top.",V.cr);
-var YOGA_EX  = ex("yoga","Yoga",1,"20–30 min","Mat, quiet space","Any beginner mobility/vinyasa flow — hips, ankles, thoracic spine. Skip anything overhead-loaded or a deep chest-opener stretch behind the torso line.",null);
+/* Yoga With Adriene, links checked via oembed 2026-10-02. Full practice on
+   recovery Saturdays (Wk 1, 2, 4); short one on rehearsal/taper Saturdays
+   (Wk 3, 5, 6, 7). Same id so it's one history thread. */
+var YOGA_EX  = ex("yoga","Yoga — Heart And Hips (26 min) + calves & feet",1,"~30 min","Mat, quiet space, a towel or strap",
+  "Hands-free practice — no weight on the arms. Then add: wall calf stretch 45 s straight-knee + 45 s bent-knee per side, and toes pose 30–60 s. Stretch at 5–6/10, never strain.",V.yoga,
+  "It includes strap/towel shoulder work. Skip anything that takes the strap behind your back or your arm behind your head — rest in child's pose instead.");
+var YOGA_SHORT_EX = ex("yoga","Yoga — 7 Minute Post-Run",1,"~8 min","Mat, quiet space",
+  "Short version for rehearsal and taper Saturdays. Stretch at 5–6/10, never strain.",V.yogas,
+  "If downward dog comes up, put your hands on a bench or swap in child's pose. No chaturanga.");
 
 // weekday 0=Sun..6=Sat
 var DAYS = {
@@ -727,9 +736,10 @@ function renderToday(){
   var extraNum = plan.gym ? 4 : 2;
   if(wd === 6){
     var sYoga = el("section","block");
+    var yoga = (wk === 3 || wk >= 5) ? YOGA_SHORT_EX : YOGA_EX;
     sYoga.appendChild(el("div","blockhead",
-      '<span class="num">'+extraNum+'</span><h2>Yoga</h2><span class="sub">20–30 min</span>'));
-    sYoga.appendChild(exCard(YOGA_EX, 0, date, e, false));
+      '<span class="num">'+extraNum+'</span><h2>Yoga</h2><span class="sub">'+yoga.reps+'</span>'));
+    sYoga.appendChild(exCard(yoga, 0, date, e, false));
     root.appendChild(sYoga);
     extraNum++;
   }
