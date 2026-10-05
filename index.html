@@ -325,7 +325,7 @@ var FULL = [
   ex("apu","Assisted pull-up",3,"6–8","Neutral grip","Use enough assistance to control the lowering.",null),
   ex("mcp2","Machine chest press",2,"10","—","As Monday.",V.mcp),
   ex("fc","Farmer's carry",3,"40 m","Heavy DBs or trap bar","Tall posture, shoulders down. Grip gives out first — that's fine.",V.fc),
-  ex("pp","Pallof press",3,"12 / side","Cable","Resist the rotation. Nothing moves but the arms.",V.pp),
+  ex("pp","Pallof press",3,"12 / side","Cable at chest height, handle against your breastbone","Resist the rotation — you should feel it in the sides of your waist, not your shoulders. Shoulders down and back like a face pull, press straight forward (not up), hold 2 s. If your shoulders take over, drop to 10 lb.",V.pp),
   ex("fp3","Face pull",2,"15","Cable","—",V.fp)
 ];
 var CORE = [
@@ -403,11 +403,11 @@ function stairSession(kind, week){
     recipe:"10 flights at <strong>L5</strong> → <strong>5 × (10 at L11 / 5 at L4)</strong> → 10 at L4. <em>95 flights.</em>",
     hard:true };
   if(kind==="tempo"){
-    if(week===3) return {title:"Real steps + machine", flights:85, level:8, min:36,
-      recipe:"<strong>Part A</strong> — 15 repeats of the 3-floor stairwell (45 flights), <strong>elevator down every time</strong>. Technique only: handrail pull, tight turns.<br><strong>Part B</strong> — 40 flights continuous on the machine at L8.",
+    if(week===3) return {title:"Real steps + machine", flights:70, level:8, min:32,
+      recipe:"<strong>Part A</strong> — 10 repeats of the 3-floor stairwell (30 flights), <strong>walking down slowly, hand on the rail</strong> — the descent is your rest. Trimmed from 15 because walking down is new lowering load. Technique only: handrail pull, tight turns.<br><strong>Part B</strong> — 40 flights continuous on the machine at L8.",
       hard:true};
-    if(week===5) return {title:"Real steps + machine — late morning", flights:100, level:8, min:40,
-      recipe:"<strong>Part A</strong> — 20 repeats (60 flights), elevator down. Same technique focus, now with fatigue in the legs.<br><strong>Part B</strong> — 40 flights continuous at L8.<br><em>Run this late morning and eat beforehand — a smaller trial of the timing offset.</em>",
+    if(week===5) return {title:"Real steps + machine — late morning", flights:100, level:8, min:50,
+      recipe:"<strong>Part A</strong> — 20 repeats (60 flights), walking down slowly. If week 3 left your quads sore for more than two days, do 15. Same technique focus, now with fatigue in the legs.<br><strong>Part B</strong> — 40 flights continuous at L8.<br><em>Run this late morning and eat beforehand — a smaller trial of the timing offset.</em>",
       hard:true};
     if(week===6) return {title:"Dress rehearsal — 105 continuous", flights:105, level:8, min:31,
       recipe:"<strong>105 flights continuous on the machine, 8:00 AM start.</strong> Wake at the usual hour, don't train, eat the real breakfast at ~5:15, sit out the gap, climb <strong>dry</strong>. Full kit, no music. Optional 5 real-step repeats first.",
