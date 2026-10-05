@@ -366,6 +366,10 @@ var DAYS = {
    rehearsal and taper, which stay anchored to Saturday so none of them
    lands on Sunday — including event day itself, Sun 8 Nov (week 7). */
 function stairKindFor(wd, week){
+  /* Taper (plan.md, Wk 7): Mon–Wed 40–50 easy, Thu 20 easy, Fri/Sat off,
+     Sun is the race. Every weekday is overridden, not just Saturday. */
+  if(week===7) return wd===0 ? "race" : wd===4 ? "taper-short"
+                    : (wd===5 || wd===6) ? "off" : "taper";
   var special = week===3 || week===5 || week===6 || week===7;
   if(!special){
     if(wd===6) return "recovery";
@@ -375,6 +379,18 @@ function stairKindFor(wd, week){
 }
 
 function stairSession(kind, week){
+  if(kind==="taper") return {
+    title:"Taper — 45 flights easy", flights:45, level:5, min:mins(45,5),
+    recipe:"<strong>40–50 flights at level 5.</strong> Easy and short. Heavy legs this week are what a taper feels like, not lost fitness.",
+    hard:false };
+  if(kind==="taper-short") return {
+    title:"Taper — 20 flights easy", flights:20, level:5, min:mins(20,5),
+    recipe:"<strong>20 flights at level 5.</strong> Just enough to keep the legs awake. Nothing that creates soreness.",
+    hard:false };
+  if(kind==="off") return {
+    title:"Off — or a walk", flights:0, level:4, min:0,
+    recipe:"<strong>No stairs.</strong> Off, or an easy 10–20 minute walk. The streak pauses on purpose: the fitness is banked, and these two days are what makes Sunday feel good.",
+    hard:false };
   if(kind==="easy") return {
     title:"Easier — 70 flights", flights:70, level:6, min:mins(70,6),
     recipe:"<strong>70 flights at level 6</strong> (45 spm). It should feel like you could do it again. If it doesn't, drop to level 5. <em>Dropped from 100 on 2026-09-23 — dialing back combined load, not just intensity.</em>",
@@ -393,8 +409,6 @@ function stairSession(kind, week){
     if(week===6) return {title:"Dress rehearsal — 105 continuous", flights:105, level:8, min:31,
       recipe:"<strong>105 flights continuous on the machine, 8:00 AM start.</strong> Wake at the usual hour, don't train, eat the real breakfast at ~5:15, sit out the gap, climb <strong>dry</strong>. Full kit, no music. Optional 5 real-step repeats first.",
       hard:true};
-    if(week===7) return {title:"Taper — off or a walk", flights:0, level:4, min:0,
-      recipe:"<strong>Nothing.</strong> Off, or an easy walk. The fitness is banked.", hard:false};
     return {title:"Quality #2 — tempo", flights:90, level:8, min:29,
       recipe:"10 at <strong>L5</strong> → <strong>70 continuous at L8–9</strong> (comfortably hard — 3–4 words of speech) → 10 at L4.",
       hard:true};
@@ -634,10 +648,26 @@ function renderToday(){
   }
   head.appendChild(meta);
 
+  if(date === EVENT){
+    root.appendChild(head);
+    renderRaceDay(root);
+    renderNotes(root, date, e);
+    return;
+  }
+
+  /* Taper gym: Mon Upper A and Wed Upper B only, two sets each. */
   var plan = DAYS[wd];
+  if(wk === 7){
+    plan = (wd === 1 || wd === 3)
+      ? {gym:plan.gym, gymMin:Math.round(plan.gymMin*0.6), stair:plan.stair,
+         list:plan.list.map(function(x){ var c={}; for(var k in x) c[k]=x[k]; c.sets=Math.min(x.sets,2); return c; })}
+      : {gym:null, list:[], gymMin:0, stair:plan.stair};
+  }
+  var noCalves = wd === 2 || (wk === 7 && (wd === 5 || wd === 6));
+  var yogaMin = (wk === 3 || wk >= 5) ? 10 : 30;
   var st = wk === 0 ? null : stairSession(stairKindFor(wd, wk), wk);
   var total = 0;
-  if(st){ total = st.min + (plan.gym ? plan.gymMin + 3 : 0) + (wd === 2 ? 0 : 3) + (wd === 6 ? 25 : 0); }
+  if(st){ total = st.min + (plan.gym ? plan.gymMin + 3 : 0) + (noCalves ? 0 : 3) + (wd === 6 ? yogaMin : 0); }
   if(total){
     var est = el("div","est");
     est.innerHTML = '<div class="n">'+total+'</div><div class="l">min total</div>';
@@ -672,6 +702,7 @@ function renderToday(){
 
   var card = el("div","stair");
   var dials = el("div","dials");
+  if(!st.flights) dials.hidden = true;
   dials.appendChild(el("div","dial accent",'<div class="v">'+st.flights+'</div><div class="k">flights</div>'));
   dials.appendChild(el("div","dial",'<div class="v">'+st.level+'</div><div class="k">level</div>'));
   dials.appendChild(el("div","dial",'<div class="v">'+cadence(st.level)+'</div><div class="k">spm</div>'));
@@ -726,7 +757,7 @@ function renderToday(){
         "<strong>Weeks 1–2 find the numbers.</strong> Pick a weight you can do every set at the bottom of the range with clean form. When in doubt, go lighter. Changing weight mid-session is correct."));
     } else if(wk === 7){
       s3.appendChild(el("div","notice warn",
-        "<strong>Taper.</strong> Two sets each, same weights as last week, stopping well short. No lower-body lifting at all this week."));
+        "<strong>Taper.</strong> Two sets each, same weights as last week, stopping well short. Monday and Wednesday only — no lower-body lifting at all this week."));
     }
     for(var j=0;j<plan.list.length;j++) s3.appendChild(exCard(plan.list[j], j, date, e, false));
     root.appendChild(s3);
@@ -736,7 +767,7 @@ function renderToday(){
   var extraNum = plan.gym ? 4 : 2;
   if(wd === 6){
     var sYoga = el("section","block");
-    var yoga = (wk === 3 || wk >= 5) ? YOGA_SHORT_EX : YOGA_EX;
+    var yoga = yogaMin === 10 ? YOGA_SHORT_EX : YOGA_EX;
     sYoga.appendChild(el("div","blockhead",
       '<span class="num">'+extraNum+'</span><h2>Yoga</h2><span class="sub">'+yoga.reps+'</span>'));
     sYoga.appendChild(exCard(yoga, 0, date, e, false));
@@ -745,7 +776,7 @@ function renderToday(){
   }
   /* Tuesday's Lower session already has its own standing calf raise (id "cr") —
      skip the shared block there so it doesn't show twice. */
-  if(wd !== 2){
+  if(!noCalves){
     var sCalf = el("section","block");
     sCalf.appendChild(el("div","blockhead",
       '<span class="num">'+extraNum+'</span><h2>Calves</h2><span class="sub">~3 min</span>'));
@@ -968,6 +999,49 @@ function setInput(date, x, si, field){
   var wrap = document.createElement("div");
   wrap.appendChild(inp);
   return wrap;
+}
+
+/* ---------- race day (from event.md) ---------- */
+function renderRaceDay(root){
+  root.appendChild(el("div","notice warn",
+    "<strong>Race day. Do not train this morning.</strong> Wake at the usual hour and deliberately do nothing. Nothing new: not the shoes, not the breakfast, not the caffeine."));
+
+  var s1 = el("section","block");
+  s1.appendChild(el("div","blockhead",'<span class="num">1</span><h2>The morning</h2><span class="sub">8:00 AM wave</span>'));
+  var sc = el("div","scroller");
+  var t = el("table","ptable");
+  var rows = [
+    ["~4:30–5:00","Wake at the usual hour. <strong>Don't train.</strong>"],
+    ["~5:15","Breakfast, ~2¾ h out — the one you practised at the Wk 6 rehearsal. Familiar, low-fibre."],
+    ["~5:30–7:15","Drink steadily, then stop ~45 min out. Stay off your legs — sit, don't walk the city."],
+    ["~6:45–7:15","Travel and arrive. First wave goes at 7:00 — check-in may close before 8:00."],
+    ["~7:30","Hand everything to whoever has your packet. Warm up: 10 min easy walking + a few flights at climbing effort."],
+    ["8:00","<strong>Climb, dry.</strong> No bags, no bottle — nothing goes in the stairwell."]
+  ];
+  var h = "<thead><tr><th>Time</th><th>What</th></tr></thead><tbody>";
+  for(var i=0;i<rows.length;i++) h += '<tr><td class="wk">'+rows[i][0]+'</td><td>'+rows[i][1]+'</td></tr>';
+  t.innerHTML = h + "</tbody>";
+  sc.appendChild(t); s1.appendChild(sc); root.appendChild(s1);
+
+  var s2 = el("section","block");
+  s2.appendChild(el("div","blockhead",'<span class="num">2</span><h2>Pacing</h2><span class="sub">105 flights · 2,149 stairs</span>'));
+  var sc2 = el("div","scroller");
+  var t2 = el("table","ptable");
+  var bands = [
+    ["1–20","Deliberately easy — slower than feels right. Everyone around you is going too fast."],
+    ["21–60","Steady, comfortably hard — 3–4 words of speech. Your Sunday tempo session."],
+    ["61–90","Hold the same effort; it will feel harder for free. Shorten the stride before you slow the cadence."],
+    ["91–103","Whatever's left. Burning legs are normal, not damage."]
+  ];
+  var h2 = "<thead><tr><th>Floors</th><th>Effort</th></tr></thead><tbody>";
+  for(var j=0;j<bands.length;j++) h2 += '<tr><td class="wk">'+bands[j][0]+'</td><td>'+bands[j][1]+'</td></tr>';
+  t2.innerHTML = h2 + "</tbody>";
+  sc2.appendChild(t2); s2.appendChild(sc2);
+  s2.appendChild(el("div","notice",
+    "<strong>Use the handrail</strong> — it's legal and it's free speed. Single-step. Take every turn tight. Breathe on a fixed count; when the count breaks, slow down."));
+  s2.appendChild(el("div","notice",
+    "<strong>The shaft gets hot and still.</strong> One light layer. Dress for the stairwell, not for November."));
+  root.appendChild(s2);
 }
 
 function renderNotes(root, date, e){
