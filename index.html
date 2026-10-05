@@ -281,6 +281,7 @@ var V = {
   lp:"https://www.youtube.com/watch?v=8nm863C0c60",  pp:"https://www.youtube.com/watch?v=xeFp4MXad98",
   fc:"https://www.youtube.com/watch?v=lLAw6fUccKA",  db:"https://www.youtube.com/watch?v=bxn9FBrt4-A",
   bpa:"https://www.youtube.com/watch?v=D-3bRfprMGI", ber:"https://www.youtube.com/watch?v=4HqMXMn3FBk",
+  pec:"https://www.youtube.com/watch?v=hZ0CGRaKwbQ",
   yoga:"https://www.youtube.com/watch?v=LNOucekw2co", yogas:"https://www.youtube.com/watch?v=vhLbp8ibmEE"
 };
 
@@ -292,8 +293,10 @@ var UPPER_A = [
   ex("csr","Chest-supported row",3,"8–12","Plate-loaded, neutral grip","Drive elbows back, not up. Pause a beat at the top.",V.csr),
   ex("mcp","Machine chest press",3,"8–12","Neutral handles, seat so handles sit at mid-chest","Shoulder blades pinned back and down into the pad the whole set.",V.mcp),
   ex("scr","Seated cable row",3,"10–12","Neutral bar or rope","Chest tall. No leaning back to finish the rep.",V.scr),
-  ex("fly","Cable fly",2,"12–15","Stop at chest line","Soft elbows, fixed angle. Think hug, not press.",V.fly,
-     "The video cues a deep stretch behind the torso. Don't. Take the cable height and elbow angle, stop at chest line."),
+  /* Replaced cable fly 2026-10-05: Beck found the cable path too loose to
+     control, and it had caused elbow pain on 9/28. The machine fixes the path. */
+  ex("pec","Pec deck (machine fly)",2,"12–15","Set the range so the handles START in front of your chest — never behind the torso line. Handles at chest height.","Soft elbows, fixed angle. Think hug, not press. Back flat on the pad, shoulders down.",V.pec,
+     "Most pec deck videos cue a deep stretch at the start. Don't — set the machine's range stop so your hands never travel behind your chest."),
   ex("fp","Face pull",3,"15–20","Rope, high anchor","To the forehead, thumbs back. Light — this is a health exercise.",V.fp),
   ex("er","Cable external rotation",2,"15","Elbow pinned to side","Slow. Elbow never leaves your ribs.",V.er)
 ];
@@ -687,7 +690,7 @@ function renderToday(){
   if(total > 75){
     root.appendChild(el("div","notice warn",
       "<strong>Long one — about "+total+" minutes.</strong> From a 4:00 start that finishes around "+
-      finishTime(total)+". If the clock is tight, drop the cable fly and the external rotation; keep the compounds and the face pulls."));
+      finishTime(total)+". If the clock is tight, drop the pec deck and the external rotation; keep the compounds and the face pulls."));
   } else if(wk === 1 && wd === 1){
     root.appendChild(el("div","notice", "<strong>Day one.</strong> "+esc(PHASES[0].note)));
   } else if(wd === 1){
@@ -1109,6 +1112,7 @@ function renderLog(){
 function allExercises(){
   var all = {}, lists=[WARM_UP,UPPER_A,LOWER,UPPER_B,FULL,CORE,[CALF_EX,YOGA_EX]];
   for(var i=0;i<lists.length;i++) for(var j=0;j<lists[i].length;j++) all[lists[i][j].id]=lists[i][j];
+  all.fly = all.fly || {id:"fly", n:"Cable fly"};   // retired 2026-10-05; old entries still export by name
   return all;
 }
 function summarise(date, e){
