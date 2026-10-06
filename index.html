@@ -304,7 +304,8 @@ var LOWER = [
   ex("lc","Seated leg curl",3,"10–12","Machine","Control the return — that's the half that builds hamstring.",V.lc),
   ex("ht","Hip thrust / glute drive",3,"10–12","Machine","Ribs down, chin tucked. Squeeze at the top, don't arch.",V.ht),
   ex("be","45° back extension",3,"12–15","Hip-hinge style, spine neutral","Hinge at the hip. Bodyweight before you add a plate.",V.be),
-  ex("pt","Cable pull-through",3,"10–12","Cable, rope, between the legs","Push hips back, not down — it's a hinge, not a squat. Soft knees, flat back; let the cable draw your hands slightly forward at the bottom, then drive hips through and squeeze the glutes at the top. Don't lean back to finish the rep.",V.pt),
+  /* Cable pull-through removed 2026-10-06: kept loading the lower back
+     (stopped early that day). The 45° back extension covers the hinge. */
   ex("ha","Hip abduction",3,"15","Machine","Lean the torso 10–15° forward — that shifts load to glute medius, the muscle that stabilises your knee for 2,149 stairs.",V.ha),
   ex("cr","Standing calf raise",3,"12–15","Machine","Full stretch at the bottom, pause at the top.",V.cr)
 ];
@@ -520,6 +521,13 @@ function topReps(reps){
 
 var STEP = 5;   // smallest useful machine increment, lb
 
+/* Deliberate weight drops. Applies until a session is logged after the
+   reset date, then normal double progression takes over from there. */
+var RESETS = {
+  ha: {after:"2026-10-06", weight:130,
+       why:"Dropped from 145 on 6 Oct — three Tuesdays running you started at 15 and faded to 10. Get all 3 sets to 15 here, then climb again."}
+};
+
 /* What to lift today, from what was lifted last time.
    Hold the weight until every prescribed set reaches the top of the
    range; then add one step. Weeks 6 and 7 never add — the block holds
@@ -528,6 +536,9 @@ function suggestLoad(x, date, week){
   var top = topReps(x.reps);
   var prev = lastLoggedFor(x.id, date);
   if(!prev) return {kind:"first", top:top};
+  var rs = RESETS[x.id];
+  if(rs && prev.date <= rs.after && date > rs.after)
+    return {kind:"down", weight:rs.weight, from:prev.date, top:top, why:rs.why};
 
   var weights = [], maxed = 0, logged = 0;
   for(var i=0;i<x.sets;i++){
@@ -900,6 +911,7 @@ function exCard(x, idx, date, e, isWarm){
     } else {
       var ttl = sg.kind === "up"  ? "Go up — add "+STEP
               : sg.kind === "top" ? "Move one set up"
+              : sg.kind === "down" ? "Drop to"
               : "Hold";
       var big = sg.kind === "top"
         ? sg.weight+'<span>&times;'+sg.topSets+'</span> &nbsp;'+sg.hold+'<span>&times;'+(x.sets-sg.topSets)+'</span>'
@@ -1112,7 +1124,8 @@ function renderLog(){
 function allExercises(){
   var all = {}, lists=[WARM_UP,UPPER_A,LOWER,UPPER_B,FULL,CORE,[CALF_EX,YOGA_EX]];
   for(var i=0;i<lists.length;i++) for(var j=0;j<lists[i].length;j++) all[lists[i][j].id]=lists[i][j];
-  all.fly = all.fly || {id:"fly", n:"Cable fly"};   // retired 2026-10-05; old entries still export by name
+  all.fly = all.fly || {id:"fly", n:"Cable fly"};          // retired 2026-10-05; old entries still export by name
+  all.pt  = all.pt  || {id:"pt",  n:"Cable pull-through"}; // retired 2026-10-06
   return all;
 }
 function summarise(date, e){
