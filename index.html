@@ -161,6 +161,8 @@ section.block{margin-top:26px}
 .hrbox.over{background:var(--hard-soft);border-left-color:var(--hard)}
 .hrbox strong{color:var(--ink)}
 .cue{font-size:13px;color:var(--ink-2);margin:11px 0 0;padding-left:9px;border-left:2px solid var(--line-2)}
+.why{font-size:13px;color:var(--ink);margin:9px 0 0}
+.why strong{color:var(--ink-2);font-weight:600}
 .setup{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin-top:7px}
 .vid{display:inline-block;margin-top:9px;font-size:12.5px;color:var(--accent);text-decoration:none;
   border-bottom:1px solid currentColor}
@@ -353,6 +355,44 @@ var YOGA_SHORT_EX = ex("yoga","Yoga — 7 Minute Post-Run",1,"~8 min","Mat, quie
   "Short version for rehearsal and taper Saturdays. Stretch at 5–6/10, never strain.",V.yogas,
   "If downward dog comes up, put your hands on a bench or swap in child's pose. No chaturanga.");
 
+/* One sentence per exercise on how it serves the climb or protects Beck's
+   shoulder — added 2026-10-12 at Beck's request. Keyed by exercise id. */
+var WHY = {
+  csr:"Builds the upper back that holds you tall through 105 flights, and keeps back muscle on while the stairs do all the work on your legs.",
+  mcp:"Holds onto chest and arm muscle, which stairs never touch; neutral handles keep the load kind to your shoulder.",
+  mcp2:"A second weekly dose of the same chest work, so chest muscle gets maintained without any one session being heavy.",
+  scr:"Trains the mid-back and lats that drive your pull on the handrail, with the load supported so your shoulder isn't the stabiliser.",
+  pec:"Maintains chest muscle on a fixed path that is easier on the shoulder than a cable fly, as long as the handles stay in front of your torso line.",
+  fp:"Strengthens the rear shoulder and upper back that keep the shoulder joint centred, which is your insurance for the shoulder.",
+  fp2:"Same job as Monday: rear-shoulder and upper-back work that keeps the shoulder joint centred.",
+  fp3:"Same job as Monday: rear-shoulder and upper-back work that keeps the shoulder joint centred.",
+  er:"Light, controlled work for the rotator cuff muscles that steady the shoulder, so pressing and pulling stay comfortable.",
+  lc:"Hamstrings are the muscle stairs under-use, so this stops them quietly eroding while your quads do all the climbing.",
+  ht:"Glutes drive every step up; this keeps them strong without adding a single extra flight.",
+  be:"Strengthens the lower back and hips that keep you upright and hinged forward for 2,149 steps.",
+  ha:"Builds glute medius, which keeps your knees steady on every one-leg push-off up the stairs.",
+  cr:"Calves handle the push-off on every step, so strength here keeps them from fading on the upper floors.",
+  crx:"A daily dose of calf strength for the push-off on every step; small, cheap, and it adds up over a block.",
+  lpd:"Builds the lats and upper back that stairs never touch, which is most of what protects upper-body muscle during this block.",
+  lmp:"An angled press that keeps shoulder and upper-chest muscle working without taking the arm overhead.",
+  sar:"Works one side at a time to even out any left-right gap, and builds the back muscles you use to pull on the rail.",
+  sap:"A gentle way to train the lats with straight arms, supporting the pulling you do on the handrail.",
+  rpd:"Works the rear shoulders to balance all the pressing, which protects the front of the shoulder.",
+  cur:"Keeps biceps muscle, which you lean on for every handrail pull.",
+  rp:"Keeps triceps muscle without dips, so arm size stays balanced.",
+  lp:"Light leg work that holds quad and glute muscle between stair days without adding to the fatigue the stairs already create.",
+  msp:"Optional shoulder-muscle work, only if it's pain-free; the landmine press does the same job with less risk.",
+  apu:"Builds the lats and arms for pulling, the upper-body strength stairs don't give you; the assistance keeps it joint-friendly.",
+  fc:"Trains grip, upper back and trunk under load, a lot like staying tall and hauling on a rail for 25 minutes.",
+  db:"Teaches your deep core to hold ribs and pelvis steady while your legs work, so you don't sway and waste energy on stairs.",
+  sp:"Builds the side-of-trunk strength that keeps your hips level on every one-leg step.",
+  sc:"Trains your trunk to resist leaning to one side, which is what a long climb with a rail on one side asks of it.",
+  bpa:"Wakes up the upper back and rear shoulders so a pre-dawn shoulder isn't cold when you press and pull.",
+  ber:"A light warm-up for the rotator cuff before you load the shoulder.",
+  spl:"Primes the shoulder blades to move properly before any pulling.",
+  yoga:"Keeps hips and calves loose after a week of stairs, and the quiet half hour is part of recovery."
+};
+
 // weekday 0=Sun..6=Sat
 var DAYS = {
   1:{gym:"Upper A", list:UPPER_A, gymMin:40, stair:"easy"},
@@ -395,8 +435,8 @@ function stairSession(kind, week){
     recipe:"<strong>No stairs.</strong> Off, or an easy 10–20 minute walk. The streak pauses on purpose: the fitness is banked, and these two days are what makes Sunday feel good.",
     hard:false };
   if(kind==="easy") return {
-    title:"Easier — 70 flights", flights:70, level:6, min:mins(70,6),
-    recipe:"<strong>70 flights at level 6</strong> (45 spm). It should feel like you could do it again. If it doesn't, drop to level 5. <em>Dropped from 100 on 2026-09-23 — dialing back combined load, not just intensity.</em>",
+    title:"Easier — 100 flights", flights:100, level:6, min:mins(100,6),
+    recipe:"<strong>100 flights at level 6</strong> (45 spm). It should feel like you could do it again. If it doesn't, drop to level 5. <em>Restored to 100 on 2026-10-12 (cut to 70 on 2026-09-23). Tripwire: an easy day at RPE 8+, or two of resting HR up / sleep slipping / easy days not feeling easy, goes back to 70.</em>",
     hard:false };
   if(kind==="intervals") return {
     title:"Quality #1 — intervals", flights:95, level:11, min:31,
@@ -892,6 +932,7 @@ function exCard(x, idx, date, e, isWarm){
   var body = el("div","exbody");
   body.hidden = true;
   if(x.setup) body.appendChild(el("div","setup", esc(x.setup)));
+  if(WHY[x.id]) body.appendChild(el("p","why", "<strong>Why it's here:</strong> "+esc(WHY[x.id])));
   if(x.cue)   body.appendChild(el("p","cue", esc(x.cue)));
   if(x.flag)  body.appendChild(el("div","flag", esc(x.flag)));
   if(x.v){
