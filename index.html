@@ -436,7 +436,7 @@ function rpeTarget(kind, week){
 function stairSession(kind, week){
   var st = stairSessionBase(kind, week);
   var r = st && rpeTarget(kind, week);
-  if(r) st.rpe = r;
+  if(r){ st.rpe = r; st.recipe = '<strong>Target effort: RPE '+r+'.</strong> ' + st.recipe; }
   return st;
 }
 function stairSessionBase(kind, week){
