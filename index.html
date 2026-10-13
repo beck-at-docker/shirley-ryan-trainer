@@ -303,7 +303,7 @@ var UPPER_A = [
   ex("er","Cable external rotation",2,"15","Elbow pinned to side","Slow. Elbow never leaves your ribs.",V.er)
 ];
 var LOWER = [
-  ex("lc","Seated leg curl",3,"10–12","Machine","Control the return — that's the half that builds hamstring.",V.lc),
+  ex("bh","Bridge hold (isometric)",3,"20–30 s","Floor, knees bent, feet flat, heels dug in. Two legs first.","Press the heels into the floor, lift the hips to a straight line from knees to shoulders, and hold. Effort about 5/10: hamstrings working, never tugging. Rest 45 s. Stages: Thu 10/15 two legs 3 × 20 s. Tue 10/20 two legs 3 × 30 s, then if quiet one 10 s single-leg test per side with hips level. Tue 10/27 single-leg 2 × 15–20 s per side, only if 10/20 left nothing the next day. Nothing new in week 7.",null,"Stop on anything sharp, or a tug in the back of the thigh that lingers into the next day. If one side feels different from the other, note which."),
   ex("ht","Hip thrust / glute drive",3,"10–12","Machine","Ribs down, chin tucked. Squeeze at the top, don't arch.",V.ht),
   ex("be","45° back extension",3,"12–15","Hip-hinge style, spine neutral","Hinge at the hip. Bodyweight before you add a plate.",V.be),
   /* Cable pull-through removed 2026-10-06: kept loading the lower back
@@ -333,7 +333,8 @@ var FULL = [
 var CORE = [
   ex("db","Dead bug",3,"10 / side","Floor","Ribs down, low back flat. Slow.",V.db),
   ex("sp","Side plank",3,"30 s / side","Floor","Hips stacked, don't sag.",null),
-  ex("sc","Suitcase carry",3,"40 m","One dumbbell","Don't lean away from the weight.",null)
+  ex("sc","Suitcase carry",3,"40 m","One dumbbell","Don't lean away from the weight.",null),
+  ex("bh","Bridge hold (isometric)",3,"20–30 s","Floor, knees bent, feet flat, heels dug in. Two legs first.","Press the heels into the floor, lift the hips to a straight line from knees to shoulders, and hold. Effort about 5/10: hamstrings working, never tugging. Rest 45 s. Stages: Thu 10/15 two legs 3 × 20 s. Tue 10/20 two legs 3 × 30 s, then if quiet one 10 s single-leg test per side with hips level. Tue 10/27 single-leg 2 × 15–20 s per side, only if 10/20 left nothing the next day. Nothing new in week 7.",null,"Stop on anything sharp, or a tug in the back of the thigh that lingers into the next day. If one side feels different from the other, note which.")
 ];
 var WARM_UP = [
   ex("bpa","Band pull-apart",1,"15","Light band","Pull the shoulders DOWN away from the ears. Don't shrug.",V.bpa),
@@ -367,7 +368,7 @@ var WHY = {
   fp2:"Same job as Monday: rear-shoulder and upper-back work that keeps the shoulder joint centred.",
   fp3:"Same job as Monday: rear-shoulder and upper-back work that keeps the shoulder joint centred.",
   er:"Light, controlled work for the rotator cuff muscles that steady the shoulder, so pressing and pulling stay comfortable.",
-  lc:"Hamstrings are the muscle stairs under-use, so this stops them quietly eroding while your quads do all the climbing.",
+  bh:"Loads the hamstrings gently with a hold instead of a curl or a stretch, keeping them strong for the stairs without provoking them.",
   ht:"Glutes drive every step up; this keeps them strong without adding a single extra flight.",
   be:"Strengthens the lower back and hips that keep you upright and hinged forward for 2,149 steps.",
   ha:"Builds glute medius, which keeps your knees steady on every one-leg push-off up the stairs.",
@@ -398,7 +399,7 @@ var DAYS = {
   1:{gym:"Upper A", list:UPPER_A, gymMin:40, stair:"easy"},
   2:{gym:"Lower",   list:LOWER,   gymMin:35, stair:"easy"},
   3:{gym:"Upper B", list:UPPER_B, gymMin:40, stair:"intervals"},
-  4:{gym:"Core + carries — optional", list:CORE, gymMin:15, stair:"easy"},
+  4:{gym:"Core + carries — optional", list:CORE, gymMin:18, stair:"easy"},
   5:{gym:"Full-body + carries", list:FULL, gymMin:36, stair:"easy"},
   6:{gym:null, list:[], gymMin:0, stair:"tempo"},
   0:{gym:null, list:[], gymMin:0, stair:"recovery"}
@@ -421,7 +422,24 @@ function stairKindFor(wd, week){
   return DAYS[wd].stair;
 }
 
+/* Target effort in RPE (1–10), shown beside the bpm band — Beck's request
+   2026-10-13. RPE is the primary signal; bpm is the cross-check. */
+function rpeTarget(kind, week){
+  if(kind==="easy") return "5–6";
+  if(kind==="recovery") return "3–4";
+  if(kind==="taper") return "4–5";
+  if(kind==="taper-short") return "3–4";
+  if(kind==="intervals") return "8–9 on the L11 pushes, 4 or less on the L4 recoveries";
+  if(kind==="tempo") return week===6 ? null : "about 7 — comfortably hard, 3–4 words of speech";
+  return null;
+}
 function stairSession(kind, week){
+  var st = stairSessionBase(kind, week);
+  var r = st && rpeTarget(kind, week);
+  if(r) st.rpe = r;
+  return st;
+}
+function stairSessionBase(kind, week){
   if(kind==="taper") return {
     title:"Taper — 45 flights easy", flights:45, level:5, min:mins(45,5),
     recipe:"<strong>40–50 flights at level 5.</strong> Easy and short. Heavy legs this week are what a taper feels like, not lost fitness.",
@@ -873,6 +891,7 @@ function renderHR(date, st){
   var bpm = parseFloat((entry(date).stairs||{}).bpm);
   var txt = '<strong>Target '+b.lo+'–'+b.hi+' bpm</strong> ('+b.name+
             '). Estimated max '+HRMAX+'.';
+  if(LAST_STAIR && LAST_STAIR.rpe) txt = '<strong>Target RPE '+LAST_STAIR.rpe+'</strong> · ' + txt;
   var cls = "hrbox";
   if(bpm){
     var pct = Math.round(bpm/HRMAX*100);
@@ -888,6 +907,7 @@ function renderHR(date, st){
       txt = '<strong>'+bpm+' bpm</strong> — where this session should sit.';
     }
   }
+  if(bpm && LAST_STAIR && LAST_STAIR.rpe) txt += '<br>Target RPE '+LAST_STAIR.rpe+'.';
   box.className = cls;
   box.innerHTML = txt;
 }
