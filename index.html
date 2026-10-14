@@ -405,6 +405,11 @@ var DAYS = {
   0:{gym:null, list:[], gymMin:0, stair:"recovery"}
 };
 
+/* One-week schedule swap (time limits): date -> weekday whose session shows.
+   Wed 10/14 ran as the Thursday session; Thu 10/15 is the Wednesday session. */
+var SWAPS = {"2026-10-14":4, "2026-10-15":3};
+function templateDay(date){ return SWAPS[date] != null ? SWAPS[date] : parse(date).getDay(); }
+
 /* Regular weeks (1,2,4) swap the weekend: Saturday recovery, Sunday
    tempo/quality. Weeks 3,5,6,7 carry the split rehearsals, dress
    rehearsal and taper, which stay anchored to Saturday so none of them
@@ -533,6 +538,18 @@ function backupNag(){
 function loadLocal(){
   try{ var raw=localStorage.getItem(KEY); if(raw) log = JSON.parse(raw)||{}; }
   catch(e){ log = {}; }
+  moveSwappedLog();
+}
+/* One-time: Wed 10/14's session was logged on Thursday's page before the swap
+   existed. Move it to the date it happened — only if 10/14 is still empty. */
+function moveSwappedLog(){
+  var MK = "flights105.swap.20261014", a = "2026-10-14", b = "2026-10-15";
+  try{ if(localStorage.getItem(MK)) return; }catch(e){ return; }
+  function hasData(en){
+    return !!(en && (Object.keys(en.stairs||{}).length || Object.keys(en.gym||{}).length || en.notes));
+  }
+  if(!hasData(log[a]) && hasData(log[b])){ log[a] = log[b]; delete log[b]; saveLocal(); }
+  try{ localStorage.setItem(MK, "1"); }catch(e){}
 }
 function saveLocal(){
   try{ localStorage.setItem(KEY, JSON.stringify(log)); }catch(e){}
@@ -696,7 +713,7 @@ function renderToday(){
   var root = document.getElementById("view-today");
   root.innerHTML = "";
   var date = VIEW_DATE;
-  var d = parse(date), wd = d.getDay();
+  var d = parse(date), wd = templateDay(date), cwd = d.getDay();
   var wk = weekOf(date);
   var e = entry(date);
 
@@ -706,7 +723,7 @@ function renderToday(){
   prevBtn.type = "button"; prevBtn.setAttribute("aria-label","Previous day");
   prevBtn.onclick = function(){ shiftDay(-1); };
   head.appendChild(prevBtn);
-  head.appendChild(el("div","bigday", DAYNAME[wd].slice(0,3).toUpperCase()));
+  head.appendChild(el("div","bigday", DAYNAME[cwd].slice(0,3).toUpperCase()));
   var nextBtn = el("button","daynav","›");
   nextBtn.type = "button"; nextBtn.setAttribute("aria-label","Next day");
   nextBtn.onclick = function(){ shiftDay(1); };
