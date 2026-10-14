@@ -541,14 +541,13 @@ function loadLocal(){
   moveSwappedLog();
 }
 /* One-time: Wed 10/14's session was logged on Thursday's page before the swap
-   existed. Move it to the date it happened — only if 10/14 is still empty. */
+   existed. Move it to the date it happened — only if 10/14 holds no real
+   content. (Viewing a day leaves empty set arrays behind, so test values with
+   hasContent, not keys. The first version of this keyed on keys and skipped.) */
 function moveSwappedLog(){
-  var MK = "flights105.swap.20261014", a = "2026-10-14", b = "2026-10-15";
+  var MK = "flights105.swap.20261014.v2", a = "2026-10-14", b = "2026-10-15";
   try{ if(localStorage.getItem(MK)) return; }catch(e){ return; }
-  function hasData(en){
-    return !!(en && (Object.keys(en.stairs||{}).length || Object.keys(en.gym||{}).length || en.notes));
-  }
-  if(!hasData(log[a]) && hasData(log[b])){ log[a] = log[b]; delete log[b]; saveLocal(); }
+  if(!hasContent(log[a]) && hasContent(log[b])){ log[a] = log[b]; delete log[b]; saveLocal(); }
   try{ localStorage.setItem(MK, "1"); }catch(e){}
 }
 function saveLocal(){
