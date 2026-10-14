@@ -1,12 +1,21 @@
 /* 105 Flights — offline shell.
-   Bump CACHE on every deploy; the old cache is dropped on activate. */
-var CACHE = "flights105-v18";
+   Bump CACHE (and BUILD in index.html) on every deploy; the old cache is
+   dropped on activate. GitHub Pages sends max-age=600, so every fetch in here
+   goes around the HTTP cache — otherwise a deploy can sit behind a stale copy
+   for ten minutes. */
+var CACHE = "flights105-v19";
 var ASSETS = ["./", "index.html", "manifest.webmanifest",
               "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 
 self.addEventListener("install", function(e){
-  e.waitUntil(caches.open(CACHE).then(function(c){ return c.addAll(ASSETS); })
-    .then(function(){ return self.skipWaiting(); }));
+  e.waitUntil(caches.open(CACHE).then(function(c){
+    return Promise.all(ASSETS.map(function(a){
+      return fetch(new Request(a, {cache:"reload"})).then(function(res){
+        if(!res.ok) throw new Error(a + " " + res.status);
+        return c.put(a, res);
+      });
+    }));
+  }).then(function(){ return self.skipWaiting(); }));
 });
 
 self.addEventListener("activate", function(e){
@@ -25,7 +34,7 @@ self.addEventListener("fetch", function(e){
   if(new URL(req.url).origin !== self.location.origin) return;
   e.respondWith(
     caches.match(req).then(function(hit){
-      var net = fetch(req).then(function(res){
+      var net = fetch(req.url, {cache:"no-cache"}).then(function(res){
         if(res && res.status === 200){
           var copy = res.clone();
           caches.open(CACHE).then(function(c){ c.put(req, copy); });

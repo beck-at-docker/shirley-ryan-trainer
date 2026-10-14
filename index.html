@@ -1367,7 +1367,21 @@ function boot(){
 
   document.getElementById("foot").innerHTML =
     "Works offline and signed out. Everything you type saves to this device as you type it and never "+
-    "leaves it &mdash; which also means this phone is the only copy. Back the log up weekly.";
+    "leaves it &mdash; which also means this phone is the only copy. Back the log up weekly."+
+    '<br><span id="ver">Build '+BUILD+'</span>';
+  showCacheVersion();
+}
+/* Keep BUILD in step with CACHE in sw.js. The footer shows both; if they
+   differ the page is stale and the new version is still on its way. */
+var BUILD = "v19";
+function showCacheVersion(){
+  if(!("caches" in window)) return;
+  caches.keys().then(function(keys){
+    var c = keys.filter(function(k){ return /^flights105-v/.test(k); })
+                .map(function(k){ return k.replace("flights105-",""); }).sort().pop();
+    var v = document.getElementById("ver");
+    if(v && c) v.textContent = "Build "+BUILD+" · cache "+c+(c === BUILD ? "" : " — update pending, reopen the app");
+  }).catch(function(){});
 }
 if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
 else boot();
@@ -1376,8 +1390,22 @@ else boot();
 
 <script>
 if("serviceWorker" in navigator){
+  /* When a new worker takes over, reload once into the new build. Skipped on
+     the very first install (no controller yet). Everything typed is already
+     saved, so a reload loses nothing. */
+  var hadController = !!navigator.serviceWorker.controller, reloaded = false;
+  navigator.serviceWorker.addEventListener("controllerchange", function(){
+    if(!hadController || reloaded) return;
+    reloaded = true; location.reload();
+  });
   window.addEventListener("load", function(){
-    navigator.serviceWorker.register("sw.js").catch(function(){ /* offline support is a bonus, not a requirement */ });
+    navigator.serviceWorker.register("sw.js").then(function(reg){
+      /* An installed app is resumed, not reloaded, so check for a new build
+         every time it comes back to the foreground. */
+      document.addEventListener("visibilitychange", function(){
+        if(document.visibilityState === "visible") reg.update().catch(function(){});
+      });
+    }).catch(function(){ /* offline support is a bonus, not a requirement */ });
   });
 }
 </script>
