@@ -1361,12 +1361,12 @@ function renderMeals(){
 
   root.appendChild(mealBlock("1","Pre-session · 3:30 AM",[
     mealTable(["Option","Carbs","Notes"],[
-      ["<strong>A.</strong> Banana + 4–6 oz orange juice","~40–48 g","Zero prep, cheapest. Use for race rehearsals."],
+      ["<strong>A.</strong> Banana + 1 tbsp honey (stirred into the shake or drizzled on the banana)","~44 g","Shelf-stable, no extra shopping. Use for race rehearsals and tempo days (low fiber)."],
       ["<strong>B.</strong> Blend the shake with ½ cup milk and a banana","~36 g (~42 g with 1 tsp honey)","Easiest when appetite is low."],
       ["<strong>C.</strong> Small jar: ½ cup cooked steel-cut oats, ½ cup milk, 1 tbsp honey. Stir the scoop in, skip the separate shake.","~41 g","Test on an easy day, not Saturday."],
-      ["<strong>D.</strong> Half a plain bagel with 1 tbsp jam","~40 g","Lowest fiber; the one for tempo days."]
+      ["<strong>D.</strong> Half a plain bagel with 1 tbsp jam (optional: needs bagels and jam)","~40 g","Lowest fiber, if you want a change from A."]
     ]),
-    "Race morning is the 8:00 wave, so you will eat about 2.5–3 hours before the start, a different timing than usual. Rehearse option A or D on a Saturday and keep it the same on the day."
+    "Race morning is the 8:00 wave, so you will eat about 2.5–3 hours before the start, a different timing than usual. Rehearse option A on a Saturday and keep it the same on the day."
   ]));
 
   root.appendChild(mealBlock("2","Post-session · ~5:45",[
@@ -1383,7 +1383,7 @@ function renderMeals(){
   ]));
 
   root.appendChild(mealBlock("4","Afternoon and dinner",[
-    "<strong>Snack (15–25 g):</strong> apple with peanut butter, an applesauce cup, or one date.",
+    "<strong>Snack (15–25 g):</strong> apple with peanut butter or an applesauce cup (one date works too, if you have them).",
     "<strong>Dinner:</strong> a normal plate built around a starch: ½–1 cup rice, potato or pasta (~22–45 g)."
   ]));
 
@@ -1399,12 +1399,14 @@ function renderMeals(){
   ]));
 
   root.appendChild(mealBlock("6","Prep and shopping",[
-    "<strong>Sunday (~45 min):</strong> the steel-cut batch (6 portions, 3 frozen), a pot of rice (1 cup dry makes about 6 half-cup portions), a tray of chicken thighs, 5 freezer smoothie bags. <strong>Wednesday night (~2 min):</strong> move the frozen oats portions to the fridge.",
-    "<strong>Shopping:</strong> steel-cut oats, bananas, frozen berries, milk, plain Greek yogurt, honey, orange juice, white rice, chicken thighs or canned beans, frozen vegetables, bread, peanut butter, jam, apples or applesauce, dates."
+    "<strong>Sunday (~45 min):</strong> the steel-cut batch (6 portions, 3 frozen), ½ cup dry rice (about 3 half-cup portions), ~1 lb chicken thighs, 1–2 freezer smoothie bags. Scale the rice and chicken up if you eat bowls more than three times a week. <strong>Wednesday night (~2 min):</strong> move the frozen oats portions to the fridge.",
+    "<strong>Already have:</strong> steel-cut oats, milk (at least a quart for the week), honey, peanut butter.",
+    "<strong>Buy, about one week:</strong> 6 bananas; 1 bag (16 oz) frozen sliced bananas; 16 oz frozen mixed berries; 16–17 oz plain Greek yogurt; ~1 lb boneless chicken thighs; 1 small bag white rice; 1 steam bag frozen vegetables; 1 loaf bread (freeze what you do not use); 3 apples; 1 pack applesauce cups. <strong>Optional:</strong> dates; plain bagels and jam (option D).",
+    "Assumed week: 6 pre-session mornings, 6 oats jars, 6 midday meals (3 rice bowls, 2 peanut butter and banana open-faces, 1 smoothie), 6 snacks; dinners not counted. Canned beans can replace the chicken."
   ]));
 
   root.appendChild(mealBlock("7","If it feels like too much",[
-    "<strong>1.</strong> Pre-session only (shake + banana + juice, ~50 g); everything else as usual. <strong>2.</strong> Add the oats jar without honey or banana (~45 g). <strong>3.</strong> Add a half-size midday bowl (~25 g)."
+    "<strong>1.</strong> Pre-session only (shake + banana + honey, ~45 g); everything else as usual. <strong>2.</strong> Add the oats jar without honey or banana (~45 g). <strong>3.</strong> Add a half-size midday bowl (~25 g)."
   ]));
 }
 
@@ -1456,7 +1458,7 @@ function boot(){
 }
 /* Keep BUILD in step with CACHE in sw.js. The footer shows both; if they
    differ the page is stale and the new version is still on its way. */
-var BUILD = "v21";
+var BUILD = "v22";
 function showCacheVersion(){
   if(!("caches" in window)) return;
   caches.keys().then(function(keys){
