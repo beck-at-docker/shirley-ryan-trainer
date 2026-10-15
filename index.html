@@ -238,12 +238,14 @@ pre.export{background:var(--sunk);border:1px solid var(--line);border-radius:8px
       <button role="tab" id="tab-today" aria-selected="true">Today</button>
       <button role="tab" id="tab-log" aria-selected="false">Log</button>
       <button role="tab" id="tab-plan" aria-selected="false">Plan</button>
+      <button role="tab" id="tab-meals" aria-selected="false">Meals</button>
     </nav>
   </header>
 
   <main id="view-today"></main>
   <main id="view-log" hidden></main>
   <main id="view-plan" hidden></main>
+  <main id="view-meals" hidden></main>
 
   <p class="foot" id="foot"></p>
 </div>
@@ -1141,12 +1143,9 @@ function renderNotes(root, date, e){
   h.innerHTML = '<span class="num">✎</span><h2>Notes</h2>';
   s.appendChild(h);
 
-  var pf = el("label","field");
-  pf.innerHTML = '<span>Protein today — target 180 g</span>';
-  var pi = document.createElement("input");
-  pi.type="number"; pi.inputMode="decimal"; pi.id="protein"; pi.value = e.protein||"";
-  pi.addEventListener("input", function(){ entry(date).protein = pi.value; persist(); });
-  pf.appendChild(pi); s.appendChild(pf);
+  s.appendChild(el("div","notice",
+    "<strong>Today's targets.</strong> Protein: ~100 g from shakes, food on top, 130 g floor. "+
+    "Carbs: 40–60 g with the pre-session shake; ~180 g across the day is a menu, not a rule (see Meals)."));
 
   var nf = el("label","field");
   nf.innerHTML = '<span>Sleep, soreness, pain, anything cut short</span>';
@@ -1327,9 +1326,91 @@ function renderPlan(){
   root.appendChild(s2);
 }
 
+/* ============ meals view ============ */
+function mealTable(head, rows){
+  var h = "<thead><tr>"+head.map(function(x){ return "<th>"+x+"</th>"; }).join("")+"</tr></thead><tbody>";
+  rows.forEach(function(r){
+    h += "<tr>"+r.map(function(x){ return "<td>"+x+"</td>"; }).join("")+"</tr>";
+  });
+  var t = el("table","ptable"); t.innerHTML = h+"</tbody>";
+  var sc = el("div","scroller"); sc.appendChild(t);
+  return sc;
+}
+/* nodes: strings become paragraphs in one panel; elements (tables) sit outside it. */
+function mealBlock(glyph, title, nodes){
+  var s = el("section","block");
+  s.appendChild(el("div","blockhead",'<span class="num">'+glyph+'</span><h2>'+title+'</h2>'));
+  var panel = null;
+  nodes.forEach(function(n){
+    if(typeof n === "string"){
+      if(!panel){ panel = el("div","stair"); s.appendChild(panel); }
+      panel.appendChild(el("p","recipe",n));
+    } else { s.appendChild(n); panel = null; }
+  });
+  return s;
+}
+function renderMeals(){
+  var root = document.getElementById("view-meals");
+  root.innerHTML = "";
+  var head = el("div","dayhead");
+  head.innerHTML = '<div class="bigday">MEALS</div><div class="daymeta">'+
+    '<div class="wk">~180 g carbs / day</div><div class="ph">Lighter plan · steel-cut oats · saved 15 Oct 2026</div></div>';
+  root.appendChild(head);
+  root.appendChild(el("div","notice",
+    "<strong>The plan is 40–60 g of carbs with the pre-session shake.</strong> Everything else here is a menu, not a prescription. Carb counts are approximate."));
+
+  root.appendChild(mealBlock("1","Pre-session · 3:30 AM",[
+    mealTable(["Option","Carbs","Notes"],[
+      ["<strong>A.</strong> Banana + 4–6 oz orange juice","~40–48 g","Zero prep, cheapest. Use for race rehearsals."],
+      ["<strong>B.</strong> Blend the shake with ½ cup milk and a banana","~36 g (~42 g with 1 tsp honey)","Easiest when appetite is low."],
+      ["<strong>C.</strong> Small jar: ½ cup cooked steel-cut oats, ½ cup milk, 1 tbsp honey. Stir the scoop in, skip the separate shake.","~41 g","Test on an easy day, not Saturday."],
+      ["<strong>D.</strong> Half a plain bagel with 1 tbsp jam","~40 g","Lowest fiber; the one for tempo days."]
+    ]),
+    "Race morning is the 8:00 wave, so you will eat about 2.5–3 hours before the start, a different timing than usual. Rehearse option A or D on a Saturday and keep it the same on the day."
+  ]));
+
+  root.appendChild(mealBlock("2","Post-session · ~5:45",[
+    "<strong>Overnight oats jar (~45 g carbs, ~15 g protein):</strong> ¾ cup cooked steel-cut oats (¼ cup dry), ½ cup milk, ¼ cup plain Greek yogurt, ½ cup frozen berries. Optional honey drizzle: +~17 g. Add a banana in the morning so it does not brown. Shake alongside if wanted.",
+    "<strong>Batch, Sunday (~30 min):</strong> 1½ cups dry steel-cut oats + 4½ cups water + a pinch of salt. Boil, then simmer 25–30 min, stirring now and then (Instant Pot: 10 min high pressure, 10 min natural release). Makes about 6 portions of ¾ cup cooked.",
+    "Fridge 3 portions for Mon–Wed. Freeze the other 3 and move them to the fridge Wednesday night for Thu–Sat. Each night stir a portion with the milk, yogurt and berries. Eat cold, or microwave 60–90 sec. Cooked oats keep about 4 days in the fridge."
+  ]));
+
+  root.appendChild(mealBlock("3","Midday · by ~11:30",[
+    "A prescribed stimulant suppresses appetite until about then, so pick the easiest option, hungry or not.",
+    "<strong>Half-size rice bowl (~25 g):</strong> ½ cup cooked rice, chicken thighs, frozen veg. With ½ cup canned beans instead of chicken: ~45 g.",
+    "<strong>Peanut butter and banana open-face (~30 g):</strong> one slice of bread, peanut butter, half a banana.",
+    "<strong>Freezer smoothie bag (~40 g):</strong> ½ banana, ½ cup berries, ¼ cup cooked steel-cut oats. Blend with ½ cup milk and ¼ cup yogurt. The one for days food is unappealing."
+  ]));
+
+  root.appendChild(mealBlock("4","Afternoon and dinner",[
+    "<strong>Snack (15–25 g):</strong> apple with peanut butter, an applesauce cup, or one date.",
+    "<strong>Dinner:</strong> a normal plate built around a starch: ½–1 cup rice, potato or pasta (~22–45 g)."
+  ]));
+
+  root.appendChild(mealBlock("5","A typical day",[
+    mealTable(["Time","What","Carbs"],[
+      ["3:30","Shake + option A","~42 g"],
+      ["~5:45","Oats jar","~45 g"],
+      ["~11:30","Rice bowl","~25 g"],
+      ["Afternoon","Snack","~20 g"],
+      ["Dinner","Starch + protein + veg","~45 g"]
+    ]),
+    "About 180 g of carbs. Protein runs ~100 g without a second shake and ~125 g with one; the 130 g floor is within reach."
+  ]));
+
+  root.appendChild(mealBlock("6","Prep and shopping",[
+    "<strong>Sunday (~45 min):</strong> the steel-cut batch (6 portions, 3 frozen), a pot of rice (1 cup dry makes about 6 half-cup portions), a tray of chicken thighs, 5 freezer smoothie bags. <strong>Wednesday night (~2 min):</strong> move the frozen oats portions to the fridge.",
+    "<strong>Shopping:</strong> steel-cut oats, bananas, frozen berries, milk, plain Greek yogurt, honey, orange juice, white rice, chicken thighs or canned beans, frozen vegetables, bread, peanut butter, jam, apples or applesauce, dates."
+  ]));
+
+  root.appendChild(mealBlock("7","If it feels like too much",[
+    "<strong>1.</strong> Pre-session only (shake + banana + juice, ~50 g); everything else as usual. <strong>2.</strong> Add the oats jar without honey or banana (~45 g). <strong>3.</strong> Add a half-size midday bowl (~25 g)."
+  ]));
+}
+
 /* ============ tabs ============ */
 function show(which){
-  var names = ["today","log","plan"];
+  var names = ["today","log","plan","meals"];
   for(var i=0;i<names.length;i++){
     var n = names[i];
     document.getElementById("view-"+n).hidden = (n !== which);
@@ -1338,6 +1419,7 @@ function show(which){
   if(which==="today") renderToday();
   if(which==="log")   renderLog();
   if(which==="plan")  renderPlan();
+  if(which==="meals") renderMeals();
   renderRail();
   window.scrollTo(0,0);
 }
@@ -1352,6 +1434,7 @@ function boot(){
   document.getElementById("tab-today").onclick = function(){ VIEW_DATE = ymd(new Date()); show("today"); };
   document.getElementById("tab-log").onclick   = function(){ show("log"); };
   document.getElementById("tab-plan").onclick  = function(){ show("plan"); };
+  document.getElementById("tab-meals").onclick = function(){ show("meals"); };
 
   var tb = document.getElementById("themeBtn");
   try{ var saved = localStorage.getItem("flights105.theme");
@@ -1373,7 +1456,7 @@ function boot(){
 }
 /* Keep BUILD in step with CACHE in sw.js. The footer shows both; if they
    differ the page is stale and the new version is still on its way. */
-var BUILD = "v19";
+var BUILD = "v21";
 function showCacheVersion(){
   if(!("caches" in window)) return;
   caches.keys().then(function(keys){
