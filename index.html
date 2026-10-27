@@ -421,6 +421,8 @@ function stairKindFor(wd, week){
      Sun is the race. Every weekday is overridden, not just Saturday. */
   if(week===7) return wd===0 ? "race" : wd===4 ? "taper-short"
                     : (wd===5 || wd===6) ? "off" : "taper";
+  /* Wk 6 Sunday is fully off — profile.md governs (Beck, 2026-10-27). */
+  if(week===6 && wd===0) return "rest";
   var special = week===3 || week===5 || week===6 || week===7;
   if(!special){
     if(wd===6) return "recovery";
@@ -458,6 +460,10 @@ function stairSessionBase(kind, week){
   if(kind==="off") return {
     title:"Off — or a walk", flights:0, level:4, min:0,
     recipe:"<strong>No stairs.</strong> Off, or an easy 10–20 minute walk. The streak pauses on purpose: the fitness is banked, and these two days are what makes Sunday feel good.",
+    hard:false };
+  if(kind==="rest") return {
+    title:"Off — full rest day", flights:0, level:4, min:0,
+    recipe:"<strong>No stairs.</strong> Fully off — Sunday is a rest day. Taper starts tomorrow.",
     hard:false };
   if(kind==="easy") return {
     title:"Easier — 100 flights", flights:100, level:6, min:mins(100,6),
@@ -1458,7 +1464,7 @@ function boot(){
 }
 /* Keep BUILD in step with CACHE in sw.js. The footer shows both; if they
    differ the page is stale and the new version is still on its way. */
-var BUILD = "v22";
+var BUILD = "v23";
 function showCacheVersion(){
   if(!("caches" in window)) return;
   caches.keys().then(function(keys){
