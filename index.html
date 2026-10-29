@@ -268,7 +268,7 @@ var PHASES = [
   {w:3, name:"Build",    note:"Double progression starts. Add load, not sets."},
   {w:4, name:"Build",    note:"Highest combined load of the block. Watch for drifting resting HR, easy days that don't feel easy, degrading sleep — any two, take Saturday off."},
   {w:5, name:"Build",    note:"Last week to add weight to anything. Saturday runs late morning to rehearse the timing offset."},
-  {w:6, name:"Peak",     note:"Dress rehearsal Saturday. Hold every weight, drop one set from each accessory."},
+  {w:6, name:"Peak",     note:"Final hard climb Saturday (tempo, not a dress rehearsal — Beck's call, 2026-10-29). Hold every weight, drop one set from each accessory."},
   {w:7, name:"Taper",    note:"Nothing new enters this week. No new exercise, no new load, no last hard session."}
 ];
 
@@ -439,7 +439,7 @@ function rpeTarget(kind, week){
   if(kind==="taper") return "4–5";
   if(kind==="taper-short") return "3–4";
   if(kind==="intervals") return "8–9 on the L11 pushes, 4 or less on the L4 recoveries";
-  if(kind==="tempo") return week===6 ? null : "about 7 — comfortably hard, 3–4 words of speech";
+  if(kind==="tempo") return "about 7 — comfortably hard, 3–4 words of speech";
   return null;
 }
 function stairSession(kind, week){
@@ -479,9 +479,6 @@ function stairSessionBase(kind, week){
       hard:true};
     if(week===5) return {title:"Real steps + machine — late morning", flights:100, level:8, min:50,
       recipe:"<strong>Part A</strong> — 20 repeats (60 flights), walking down slowly. If week 3 left your quads sore for more than two days, do 15. Same technique focus, now with fatigue in the legs.<br><strong>Part B</strong> — 40 flights continuous at L8.<br><em>Run this late morning and eat beforehand — a smaller trial of the timing offset.</em>",
-      hard:true};
-    if(week===6) return {title:"Dress rehearsal — 105 continuous", flights:105, level:8, min:31,
-      recipe:"<strong>105 flights continuous on the machine, 8:00 AM start.</strong> Wake at the usual hour, don't train, eat the real breakfast at ~5:15, sit out the gap, climb <strong>dry</strong>. Full kit, no music. Optional 5 real-step repeats first.",
       hard:true};
     return {title:"Quality #2 — tempo", flights:90, level:8, min:29,
       recipe:"10 at <strong>L5</strong> → <strong>70 continuous at L8–9</strong> (comfortably hard — 3–4 words of speech) → 10 at L4.",
@@ -1111,7 +1108,7 @@ function renderRaceDay(root){
   var t = el("table","ptable");
   var rows = [
     ["~4:30–5:00","Wake at the usual hour. <strong>Don't train.</strong>"],
-    ["~5:15","Breakfast, ~2¾ h out — the one you practised at the Wk 6 rehearsal. Familiar, low-fibre."],
+    ["~5:15","Breakfast, ~2¾ h out — one you have already eaten before a climb. Familiar, low-fibre."],
     ["~5:30–7:15","Drink steadily, then stop ~45 min out. Stay off your legs — sit, don't walk the city."],
     ["~6:45–7:15","Travel and arrive. First wave goes at 7:00 — check-in may close before 8:00."],
     ["~7:30","Hand everything to whoever has your packet. Warm up: 10 min easy walking + a few flights at climbing effort."],
@@ -1324,7 +1321,7 @@ function renderPlan(){
   s2.appendChild(el("div","blockhead",'<span class="num">▲</span><h2>Event morning</h2>'));
   var tbl = el("div","stair");
   tbl.innerHTML =
-    '<p class="recipe"><strong>8:00 AM wave.</strong> You train at 4–5 AM, so the climb is three hours later than every session you have ever done. That gap is the thing to rehearse.</p>'+
+    '<p class="recipe"><strong>8:00 AM wave.</strong> Most of your sessions start at 4–5 AM, but you have trained later in the day before, so this is a shift in timing, not a first. Settle the morning routine below and stick to it.</p>'+
     '<p class="recipe">~4:30 wake, <strong>don\'t train</strong> · 5:15 breakfast · hydrate then stop by 7:15 · 7:30 hand off gear and warm up · <strong>8:00 climb, dry</strong>.</p>'+
     '<p class="recipe"><strong>Nothing can be carried into the stairwell — water included.</strong> One light layer; the shaft gets hot and still. Event start is listed as 7:00 AM, so check when check-in closes.</p>'+
     '<p class="recipe">A hot enclosed shaft, a maximal effort and a stimulant all push the same direction on heat and heart rate. Worth one question to your prescriber before race day — not a reason to change anything on your own.</p>';
@@ -1464,7 +1461,7 @@ function boot(){
 }
 /* Keep BUILD in step with CACHE in sw.js. The footer shows both; if they
    differ the page is stale and the new version is still on its way. */
-var BUILD = "v23";
+var BUILD = "v24";
 function showCacheVersion(){
   if(!("caches" in window)) return;
   caches.keys().then(function(keys){
