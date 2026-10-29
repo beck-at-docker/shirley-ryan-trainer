@@ -3,7 +3,7 @@
    dropped on activate. GitHub Pages sends max-age=600, so every fetch in here
    goes around the HTTP cache — otherwise a deploy can sit behind a stale copy
    for ten minutes. */
-var CACHE = "flights105-v24";
+var CACHE = "flights105-v25";
 var ASSETS = ["./", "index.html", "manifest.webmanifest",
               "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 

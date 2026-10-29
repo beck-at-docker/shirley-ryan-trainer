@@ -755,7 +755,8 @@ function renderToday(){
          list:plan.list.map(function(x){ var c={}; for(var k in x) c[k]=x[k]; c.sets=Math.min(x.sets,2); return c; })}
       : {gym:null, list:[], gymMin:0, stair:plan.stair};
   }
-  var noCalves = wd === 2 || (wk === 7 && (wd === 5 || wd === 6));
+  /* Wk 7 taper: no calf block at all — no lower-body lifting (Beck, 2026-10-29). */
+  var noCalves = wd === 2 || wk === 7;
   var yogaMin = (wk === 3 || wk >= 5) ? 10 : 30;
   var st = wk === 0 ? null : stairSession(stairKindFor(wd, wk), wk);
   var total = 0;
@@ -1461,7 +1462,7 @@ function boot(){
 }
 /* Keep BUILD in step with CACHE in sw.js. The footer shows both; if they
    differ the page is stale and the new version is still on its way. */
-var BUILD = "v24";
+var BUILD = "v25";
 function showCacheVersion(){
   if(!("caches" in window)) return;
   caches.keys().then(function(keys){
