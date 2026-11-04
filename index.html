@@ -428,6 +428,14 @@ var HLR_EX = BW(P(ex("hlr","Hanging leg raises",3,"10","Bar hang, bent knee. Set
     "Do them after the pulling, never before rows and pulldowns. Shoulder gate applies."),
   {why:"The main ab movement of the block, done daily. The centre, left and right pattern covers the obliques too."}));
 
+/* Saturday yoga in the post block (Beck, 2026-11-04): the short session,
+   after the tempo and core while warm. Same id as before: one history thread. */
+var YOGA_POST_EX = BW(P(ex("yoga","Yoga — 7 Minute Post-Run",1,"~8 min","Mat, quiet space",
+  "After the tempo and core, while you're warm. Stretch at 5–6/10, never strain. Want the full 26-minute Heart And Hips practice instead? It fits on a deload Saturday.",V.yogas,
+  "If downward dog comes up, put your hands on a bench or swap in child's pose. No chaturanga, no binds behind the back."),
+  {why:"Keeps hips and calves loose after a week of stairs and heavy legs, and the quiet few minutes are part of recovery."}));
+var YOGA_MIN_POST = 8;
+
 var WARM_UP = [
   ex("bpa","Band pull-apart",1,"15","Light band","Pull the shoulders DOWN away from the ears. Don't shrug.",V.bpa),
   ex("ber","Band external rotation",1,"15","Light band","Elbow pinned to the ribs.",V.ber),
@@ -953,7 +961,7 @@ function renderPostToday(root, date, e){
   var plan = {gym:base.gym, gymMin:base.gymMin, stair:base.stair, liftFirst:!!base.liftFirst,
     list:base.list.map(function(x){ var c={}; for(var k in x) c[k]=x[k]; c.sets=postSets(x, pw); return c; })};
   var st = stairSession(plan.stair, pw);
-  var total = SHOULDER_MIN + HLR_MIN + st.min + (plan.gym ? plan.gymMin : 0);
+  var total = SHOULDER_MIN + HLR_MIN + st.min + (plan.gym ? plan.gymMin : 0) + (wd === 6 ? YOGA_MIN_POST : 0);
 
   var head = el("div","dayhead");
   var prevBtn = el("button","daynav","‹");
@@ -1026,6 +1034,14 @@ function renderPostToday(root, date, e){
   if(wd === 2 || wd === 4) sh.appendChild(el("div","notice","After the pulling — never before the rows and pulldowns."));
   sh.appendChild(exCard(HLR_EX, 0, date, e, false));
   root.appendChild(sh);
+
+  /* ---- yoga, Saturdays ---- */
+  if(wd === 6){
+    var sy = el("section","block");
+    sy.appendChild(el("div","blockhead",'<span class="num">'+(n++)+'</span><h2>Yoga</h2><span class="sub">'+YOGA_POST_EX.reps+'</span>'));
+    sy.appendChild(exCard(YOGA_POST_EX, 0, date, e, false));
+    root.appendChild(sy);
+  }
 
   renderNotes(root, date, e);
 }
@@ -1583,7 +1599,7 @@ function renderPostPlan(root){
     ["Wed","Quality #1 — intervals","Core block A"],
     ["Thu","Easy 70 at L6, after lifting","Upper B — vertical pull + landmine"],
     ["Fri","—","Lower B — hip thrust, abduction, bridge holds"],
-    ["Sat","Quality #2 — tempo (benchmark in wk 4, 8)","Core + carries"],
+    ["Sat","Quality #2 — tempo (benchmark in wk 4, 8)","Core + carries, then 8 min yoga"],
     ["Sun","Off","Off"]
   ];
   var h = "<thead><tr><th>Day</th><th>Stairs</th><th>Gym</th></tr></thead><tbody>";
@@ -1720,7 +1736,7 @@ function boot(){
 }
 /* Keep BUILD in step with CACHE in sw.js. The footer shows both; if they
    differ the page is stale and the new version is still on its way. */
-var BUILD = "v26";
+var BUILD = "v27";
 function showCacheVersion(){
   if(!("caches" in window)) return;
   caches.keys().then(function(keys){
