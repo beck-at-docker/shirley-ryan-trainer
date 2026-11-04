@@ -238,14 +238,12 @@ pre.export{background:var(--sunk);border:1px solid var(--line);border-radius:8px
       <button role="tab" id="tab-today" aria-selected="true">Today</button>
       <button role="tab" id="tab-log" aria-selected="false">Log</button>
       <button role="tab" id="tab-plan" aria-selected="false">Plan</button>
-      <button role="tab" id="tab-meals" aria-selected="false">Meals</button>
     </nav>
   </header>
 
   <main id="view-today"></main>
   <main id="view-log" hidden></main>
   <main id="view-plan" hidden></main>
-  <main id="view-meals" hidden></main>
 
   <p class="foot" id="foot"></p>
 </div>
@@ -257,6 +255,11 @@ pre.export{background:var(--sunk);border:1px solid var(--line);border-radius:8px
 /* ============ the block ============ */
 var EVENT = "2026-11-08";          // Sunday — SkyRise Chicago
 var START = "2026-09-21";          // Monday, week 1
+/* Post-SkyRise block (post-event-plan.md): 8 weeks, strength-led, from the
+   Monday after the climb. Dates on or after POST_START use the POST_* tables
+   below; everything before keeps the original 7-week block untouched. */
+var POST_START = "2026-11-09";     // Monday, post week 1
+var POST_END   = "2027-01-03";     // Sunday, post week 8
 var FLIGHTS = 105, STAIRS = 2149, STEPS_PER_FLIGHT = 16;
 
 function cadence(l){ return 45 + (l-6)*5; }           // measured: L8=55, L6=45
@@ -270,6 +273,20 @@ var PHASES = [
   {w:5, name:"Build",    note:"Last week to add weight to anything. Saturday runs late morning to rehearse the timing offset."},
   {w:6, name:"Peak",     note:"Final hard climb Saturday (tempo, not a dress rehearsal — Beck's call, 2026-10-29). Hold every weight, drop one set from each accessory."},
   {w:7, name:"Taper",    note:"Nothing new enters this week. No new exercise, no new load, no last hard session."}
+];
+
+/* Post-SkyRise phases (post-event-plan.md). Weeks 1, 4 and 8 hold the
+   weights; 4 and 8 also run at two-thirds of the sets and carry the stair
+   benchmark. */
+var POST_PHASES = [
+  {w:1, name:"Ramp",    hold:true,  note:"The day after the climb is a maximal effort in heat. Last-logged loads, no jumps, three sets on the main lifts. Wednesday is a short interval session and Saturday a short tempo. No progression gates this week."},
+  {w:2, name:"Build",   hold:false, note:"Full template. Double progression and the stair gates begin."},
+  {w:3, name:"Build",   hold:false, note:"Full template. Thanksgiving is Thursday 26 Nov: absorb a missed day, don't repay it."},
+  {w:4, name:"Deload",  hold:true,  note:"Two-thirds of the sets, same weights. Wednesday intervals are short. Saturday is the stair benchmark: a timed 100 flights at L8."},
+  {w:5, name:"Build",   hold:false, note:"Full template. Loads restart from the week 4 numbers."},
+  {w:6, name:"Build",   hold:false, note:"Full template."},
+  {w:7, name:"Build",   hold:false, note:"Full template. Holiday week: adjust to travel, and absorb rather than repay a missed day."},
+  {w:8, name:"Deload",  hold:true,  note:"Two-thirds of the sets, same weights. Saturday is the stair benchmark again: compare against week 4 and the ~29 min reference from September."}
 ];
 
 var V = {
@@ -338,6 +355,79 @@ var CORE = [
   ex("sc","Suitcase carry",3,"40 m","One dumbbell","Don't lean away from the weight.",null),
   ex("bh","Bridge hold (isometric)",3,"20–30 s","Floor, knees bent, feet flat, heels dug in. Two legs first.","Press the heels into the floor, lift the hips to a straight line from knees to shoulders, and hold. Effort about 5/10: hamstrings working, never tugging. Rest 45 s. Stages: Thu 10/15 two legs 3 × 20 s. Tue 10/20 two legs 3 × 30 s, then if quiet one 10 s single-leg test per side with hips level. Tue 10/27 single-leg 2 × 15–20 s per side, only if 10/20 left nothing the next day. Nothing new in week 7.",null,"Stop on anything sharp, or a tug in the back of the thigh that lingers into the next day. If one side feels different from the other, note which.")
 ];
+/* ---------- post-SkyRise block (post-event-plan.md) ----------
+   Same ids as the old block wherever the exercise is the same, so last-logged
+   weights carry over. Main lifts run 4 sets of 5–10; accessories 2–3. */
+function P(x, extra){ for(var k in extra) x[k]=extra[k]; return x; }
+
+var LOWER_A = [
+  P(ex("lp","Leg press",4,"6–8","Heavy, controlled. Not to failure.","Knees track over toes. Never lock them out, lower back flat at the bottom.",V.lp),
+    {why:"The main quad lift of the block. With stairs down to four days, the quads can finally be trained for strength rather than just maintained."}),
+  P(ex("msq","Machine squat",3,"8","Hack, pendulum or similar squat machine. Start light and learn the pattern.","Feet where the knees track over the toes, chest tall, controlled lowering. Stop a rep short while it's new.",
+       "https://www.youtube.com/watch?v=fE5BWPy7uRc",
+       "Take the setup from the video, not the depth. Go only as deep as your lower back stays flat on the pad. Alternate video: https://www.youtube.com/watch?v=hglQExHCM9Q"),
+    {why:"Adds a squat pattern to the leg press, trained on a machine so the shoulder and lower back aren't the limit."}),
+  P(ex("be","45° back extension",3,"8–12","Hip-hinge style, spine neutral. Hold a plate once bodyweight is easy.","Hinge at the hip, neutral spine. Add a plate when all sets hit the top.",V.be),
+    {why:"Strengthens the lower back and hips that hold a hinged-forward posture, and loads the hamstrings gently without a curl."}),
+  ex("cr","Standing calf raise",2,"12–15","Machine","Full stretch at the bottom, pause at the top.",V.cr)
+];
+var UPPER_A_P = [
+  ex("csr","Chest-supported row",4,"6–10","Plate-loaded, neutral grip","Drive elbows back, not up. Pause a beat at the top.",V.csr),
+  ex("mcp","Machine chest press",3,"6–10","Neutral handles, seat so handles sit at mid-chest","Shoulder blades pinned back and down into the pad the whole set.",V.mcp,
+     "Shoulder gate: progress only after a clean shoulder note on this lift. A twinge holds the weight. Sharp or lingering pain ends it."),
+  ex("scr","Seated cable row",3,"8–12","Neutral bar or rope","Chest tall. No leaning back to finish the rep.",V.scr),
+  ex("pec","Pec deck (machine fly)",2,"12–15","Set the range so the handles START in front of your chest — never behind the torso line. Handles at chest height.","Soft elbows, fixed angle. Think hug, not press. Back flat on the pad, shoulders down.",V.pec,
+     "Most pec deck videos cue a deep stretch at the start. Don't — set the machine's range stop so your hands never travel behind your chest. Shoulder gate applies."),
+  ex("fp","Face pull",3,"15–20","Rope, high anchor","To the forehead, thumbs back. Light — this is a health exercise.",V.fp)
+];
+var UPPER_B_P = [
+  ex("lpd","Lat pulldown",4,"6–10","Neutral grip","Pull to the collarbone. Lead with the elbows, not the hands.",V.lpd),
+  ex("lmp","Landmine press",3,"6–10 / side","Half-kneeling, one side at a time","Press up and slightly forward. Ribs down, glute squeezed on the kneeling side.",V.lmp,
+     "Shoulder gate: progress only after a clean shoulder note on this lift."),
+  ex("sar","Single-arm row",3,"8–10 / side","Cable or machine","Let the shoulder blade travel at the bottom, then pull.",V.sar),
+  ex("sap","Straight-arm pulldown",2,"12–15","Cable","Arms stay straight. Feel it in the armpit, not the triceps.",V.sap),
+  ex("rpd","Reverse pec deck",3,"15","Machine","Light. Thumbs up, squeeze the rear delts.",V.rpd),
+  ex("cur","Incline DB or cable curl",2,"10–12","—","No swinging.",null),
+  ex("rp","Rope pushdown",2,"12–15","Cable — not dips","Elbows locked to your sides.",V.rp),
+  ex("fp2","Face pull",3,"15–20","Cable","Same as Tuesday. Every upper day.",V.fp)
+];
+var LOWER_B = [
+  P(ex("ht","Hip thrust / glute drive",4,"6–10","Machine","Ribs down, chin tucked. Squeeze at the top, don't arch.",V.ht),
+    {why:"The main glute lift: glutes drive every step up, so this is where lower-body strength pays off most on the stairs."}),
+  ex("ha","Hip abduction",3,"12–15","Machine","Lean the torso 10–15° forward — that shifts load to glute medius, the muscle that stabilises your knee.",V.ha),
+  ex("bh","Single-leg bridge hold (isometric)",3,"30–45 s / side","Floor, knees bent, one foot flat, heel dug in, other leg up. Hips level.","Press the heel into the floor and hold a straight line from knee to shoulder. About 5/10: hamstring working, never tugging. Rest 45 s. Note which side feels different.",null,
+     "Gated on a quiet next day. Stop on anything sharp, or a tug in the back of the thigh that lingers. If it tugs, hold or skip it — nothing else backs off."),
+  P(ex("lpB","Leg press, moderate",2,"10–12","Moderate — nowhere near a hard set. Saturday is tempo.","Knees track over toes. Never lock them out.",V.lp,
+       "Keep this light. It is the day before the tempo climb."),
+    {why:"A light second dose of leg work that keeps the quads trained without costing Saturday's tempo."}),
+  ex("cr","Standing calf raise",2,"12–15","Machine","Full stretch at the bottom, pause at the top.",V.cr)
+];
+var CORE_A = [
+  ex("db","Dead bug",3,"10 / side","Floor","Ribs down, low back flat. Slow.",V.db),
+  ex("sp","Side plank",3,"30–45 s / side","Floor","Hips stacked, don't sag.",null)
+];
+var CORE_B = [
+  P(ex("fpl","Front plank",3,"30–45 s","Floor, forearms down","Ribs down, glutes squeezed, a straight line from head to heels. Bird dog is fine instead.",null),
+    {why:"Trains the whole trunk to hold a rigid line, which is what transfers to every heavy lift."}),
+  ex("sc","Suitcase carry",3,"40 m","One dumbbell","Don't lean away from the weight.",null),
+  ex("fc","Farmer's carry",3,"40 m","Heavy DBs or trap bar","Tall posture, shoulders down. Grip gives out first — that's fine.",V.fc)
+];
+/* Daily, every day. Bodyweight / band work: log reps, weight optional. */
+function BW(x){ x.bw = true; return x; }
+var SHOULDER_DAILY = [
+  BW(P(ex("ber","External rotation at the side",2,"15","Band or cable, elbow pinned to the ribs on a rolled towel","Slow on the return. Light, about 3/10.",V.ber),
+       {why:"Strengthens the rotator cuff muscles that steady the shoulder, so pressing and pulling stay comfortable."})),
+  BW(P(ex("sir","Internal rotation at the side",2,"15","Same setup, rotating inward. Keep it light.","Slow on the return. The front of the shoulder is where your twinges show up, so stay well under the load that bothers it.",null),
+       {why:"Balances the external rotation work with the muscles on the front of the shoulder."})),
+  BW(P(ex("ptr","Prone T-raise",2,"10","Face down on a bench, thumbs up, arms out to the sides","Lift only to torso height, never behind it. Very light or no weight.",null),
+       {why:"Strengthens the rear shoulder and upper back that keep the joint centred."})),
+  BW(P(ex("spl","Scapular pull",2,"10","Hang from the bar, arms straight","Just the shoulder blades move, down away from the ears. Elbows stay straight. Leads straight into the leg raises.",null),
+       {why:"Primes the shoulder blades to move properly before any hanging or pulling."}))
+];
+var HLR_EX = BW(P(ex("hlr","Hanging leg raises",3,"10","Bar hang, bent knee. Set 1 centre, set 2 left, set 3 right.","Tilt the pelvis first, then bring the knees up without swinging. Wednesday is the progression day: when all three sets are clean at 15, go to straight knees, then add ankle weight. Other days stay at 3 × 10.",null,
+    "Do them after the pulling, never before rows and pulldowns. Shoulder gate applies."),
+  {why:"The main ab movement of the block, done daily. The centre, left and right pattern covers the obliques too."}));
+
 var WARM_UP = [
   ex("bpa","Band pull-apart",1,"15","Light band","Pull the shoulders DOWN away from the ears. Don't shrug.",V.bpa),
   ex("ber","Band external rotation",1,"15","Light band","Elbow pinned to the ribs.",V.ber),
@@ -412,6 +502,48 @@ var DAYS = {
 var SWAPS = {"2026-10-14":4, "2026-10-15":3};
 function templateDay(date){ return SWAPS[date] != null ? SWAPS[date] : parse(date).getDay(); }
 
+/* Post-SkyRise week (post-event-plan.md). liftFirst: heavy lifting comes
+   before the easy stairs so the sets aren't pre-fatigued. Every day also
+   carries the shoulder block and the hanging leg raises. */
+var POST_DAYS = {
+  1:{gym:"Lower A — strength",       list:LOWER_A,    gymMin:60, stair:"p-none"},
+  2:{gym:"Upper A",                  list:UPPER_A_P,  gymMin:38, stair:"p-easy", liftFirst:true},
+  3:{gym:"Core block A",             list:CORE_A,     gymMin:10, stair:"p-intervals"},
+  4:{gym:"Upper B",                  list:UPPER_B_P,  gymMin:42, stair:"p-easy", liftFirst:true},
+  5:{gym:"Lower B — glutes",         list:LOWER_B,    gymMin:50, stair:"p-none"},
+  6:{gym:"Core + carries",           list:CORE_B,     gymMin:12, stair:"p-tempo"},
+  0:{gym:null, list:[], gymMin:0, stair:"p-rest"}
+};
+var SHOULDER_MIN = 5, HLR_MIN = 3;
+
+/* Which block a date falls in, and the week within it. */
+function inPost(date){ return date >= POST_START; }
+function postWeekOf(date){
+  var d = daysBetween(POST_START, date);
+  if(d < 0) return 0;
+  return Math.min(8, Math.floor(d/7)+1);
+}
+function weekLabel(date){ return inPost(date) ? "Post Wk "+postWeekOf(date) : "Wk "+weekOf(date); }
+/* What suggestLoad needs to know about the week. Ramp and deload weeks hold
+   every weight (pseudo-week 6 = "hold"); build weeks progress normally. */
+function loadMode(date){
+  if(!inPost(date)) return {week:weekOf(date), holdWhy:null};
+  var ph = POST_PHASES[postWeekOf(date)-1];
+  return ph.hold
+    ? {week:6, holdWhy: ph.name === "Ramp"
+        ? "Ramp week: same weight as last time, no jumps. The progression starts next week."
+        : "Deload week: same weight as last time, fewer sets. The weights climb again next week."}
+    : {week:3, holdWhy:null};
+}
+/* Sets for a post-block day: ramp week caps the main lifts at 3; deload
+   weeks run two-thirds of the sets (never below 2). */
+function postSets(x, pw){
+  var n = x.sets;
+  if(pw === 1) n = Math.min(n, 3);
+  else if(pw === 4 || pw === 8) n = Math.max(2, Math.round(n*2/3));
+  return n;
+}
+
 /* Regular weeks (1,2,4) swap the weekend: Saturday recovery, Sunday
    tempo/quality. Weeks 3,5,6,7 carry the split rehearsals, dress
    rehearsal and taper, which stay anchored to Saturday so none of them
@@ -434,6 +566,9 @@ function stairKindFor(wd, week){
 /* Target effort in RPE (1–10), shown beside the bpm band — Beck's request
    2026-10-13. RPE is the primary signal; bpm is the cross-check. */
 function rpeTarget(kind, week){
+  if(kind==="p-easy") return "5 or lower";
+  if(kind==="p-intervals") return "8 or lower on the L11 pushes, 4 or less on the L4 recoveries";
+  if(kind==="p-tempo") return week===4 || week===8 ? "as hard as you can hold for 100 flights" : "about 7 — comfortably hard, 3–4 words of speech";
   if(kind==="easy") return "5–6";
   if(kind==="recovery") return "3–4";
   if(kind==="taper") return "4–5";
@@ -448,7 +583,47 @@ function stairSession(kind, week){
   if(r){ st.rpe = r; st.recipe = '<strong>Target effort: RPE '+r+'.</strong> ' + st.recipe; }
   return st;
 }
+/* Post-SkyRise stair sessions. `week` is the POST week (1–8). Flights never
+   exceed 100; level, speed and shorter rests are the only dials. */
+function postStairBase(kind, week){
+  var short = week===1 || week===4 || week===8;   // ramp and deload weeks
+  if(kind==="p-none") return {
+    title:"No stairs today", flights:0, level:4, min:0,
+    recipe:"<strong>No stairs.</strong> Heavy leg day, and the legs are for lifting. Any climbing waits for tomorrow's plan.",
+    hard:false };
+  if(kind==="p-rest") return {
+    title:"Off — full rest day", flights:0, level:4, min:0,
+    recipe:"<strong>No stairs, no lifting.</strong> Fully off. Monday's heavy legs are better for it.",
+    hard:false };
+  if(kind==="p-easy") return {
+    title:"Easy — 70 flights", flights:70, level:6, min:mins(70,6),
+    recipe:"<strong>70 flights at level 6</strong> (45 spm), after the lifting. Recovery, not progress: it should feel like you could do it again.",
+    hard:false };
+  if(kind==="p-intervals"){
+    if(short) return {title:"Quality #1 — short intervals", flights:65, level:11, min:22,
+      recipe:"10 flights at <strong>L5</strong> → <strong>3 × (10 at L11 / 5 at L4)</strong> → 10 at L4. <em>65 flights — "+(week===1?"ramp":"deload")+" week, three reps.</em>",
+      hard:true};
+    return {title:"Quality #1 — intervals", flights:95, level:11, min:31,
+      recipe:"10 flights at <strong>L5</strong> → <strong>5 × (10 at L11 / 5 at L4)</strong> → 10 at L4. <em>95 flights.</em><br>"+
+             "<strong>Gate:</strong> finish every set with work heart rate under 170 and RPE 8 or lower, and the work level goes up one step next time (L12). Rest flights stay under 150 bpm.",
+      hard:true};
+  }
+  if(kind==="p-tempo"){
+    if(week===4 || week===8) return {title:"Benchmark — 100 flights at L8", flights:100, level:8, min:mins(100,8),
+      recipe:"<strong>Timed: 100 flights straight at level 8.</strong> No warm-up flights beyond two minutes easy, start the clock at L8 and don't change the level. Log the time, average bpm and RPE. Compare with ~29 min (the September reference) and, in week 8, with week 4.",
+      hard:true};
+    if(week===1) return {title:"Quality #2 — short tempo", flights:70, level:8, min:23,
+      recipe:"10 at <strong>L5</strong> → <strong>50 continuous at L8</strong> → 10 at L4. <em>70 flights — ramp week.</em>",
+      hard:true};
+    return {title:"Quality #2 — tempo", flights:90, level:8, min:29,
+      recipe:"10 at <strong>L5</strong> → <strong>70 continuous at L8</strong> (comfortably hard — 3–4 words of speech) → 10 at L4. <em>90 flights.</em><br>"+
+             "<strong>Gate:</strong> two sessions in a row at RPE 7 or lower, and the tempo level goes up one step (L9).",
+      hard:true};
+  }
+  return null;
+}
 function stairSessionBase(kind, week){
+  if(/^p-/.test(kind)) return postStairBase(kind, week);
   if(kind==="taper") return {
     title:"Taper — 45 flights easy", flights:45, level:5, min:mins(45,5),
     recipe:"<strong>40–50 flights at level 5.</strong> Easy and short. Heavy legs this week are what a taper feels like, not lost fitness.",
@@ -610,8 +785,9 @@ var RESETS = {
    Hold the weight until every prescribed set reaches the top of the
    range; then add one step. Weeks 6 and 7 never add — the block holds
    load through peak and taper. */
-function suggestLoad(x, date, week){
+function suggestLoad(x, date, week, holdWhy){
   var top = topReps(x.reps);
+  if(x.bw) return {kind:"first", top:top};          // bodyweight / band work: no load to suggest
   var prev = lastLoggedFor(x.id, date);
   if(!prev) return {kind:"first", top:top};
   var rs = RESETS[x.id];
@@ -645,7 +821,8 @@ function suggestLoad(x, date, week){
 
   if(complete && week >= 6)
     return {kind:"hold", weight:w, from:prev.date, top:top,
-            why: week === 7 ? "Taper — same weight as last week, and stop well short."
+            why: holdWhy ? holdWhy
+               : week === 7 ? "Taper — same weight as last week, and stop well short."
                             : "Peak week holds load. You earned the jump; it waits until after the climb."};
   if(complete){
     var pct = Math.round(STEP / w * 100);
@@ -678,6 +855,11 @@ function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){
 
 function renderCountdown(){
   var today = ymd(new Date());
+  if(inPost(today)){
+    document.getElementById("countdown").innerHTML = "Climbed 8 Nov · <b>week "+postWeekOf(today)+"</b> of 8"+
+      (today > POST_END ? " · block complete" : "");
+    return;
+  }
   var left = daysBetween(today, EVENT);
   var t = left > 1 ? "<b>"+left+"</b> days to the tower"
         : left === 1 ? "<b>Tomorrow.</b>"
@@ -689,17 +871,23 @@ function renderCountdown(){
 function renderRail(){
   var rail = document.getElementById("rail");
   rail.innerHTML = "";
-  var cur = weekOf(ymd(new Date()));
-  var viewing = weekOf(VIEW_DATE);
-  for(var i=1;i<=7;i++){
+  /* The rail follows the block of the day being viewed: 7 floors for the
+     SkyRise block, 8 for the post-climb block. */
+  var post = inPost(VIEW_DATE);
+  var phases = post ? POST_PHASES : PHASES;
+  var start = post ? POST_START : START;
+  var today = ymd(new Date());
+  var cur = inPost(today) === post ? (post ? postWeekOf(today) : weekOf(today)) : (post ? 0 : 99);
+  var viewing = post ? postWeekOf(VIEW_DATE) : weekOf(VIEW_DATE);
+  for(var i=1;i<=phases.length;i++){
     var b = el("button","floor");
     if(i < cur) b.className += " past";
     if(i === viewing) b.className += " now";
     b.type = "button";
-    b.innerHTML = '<span class="bar"></span>'+i+'<span class="ph">'+PHASES[i-1].name.slice(0,4)+'</span>';
-    b.setAttribute("aria-label","Week "+i+" — "+PHASES[i-1].name);
+    b.innerHTML = '<span class="bar"></span>'+i+'<span class="ph">'+phases[i-1].name.slice(0,4)+'</span>';
+    b.setAttribute("aria-label","Week "+i+" — "+phases[i-1].name);
     (function(wk){ b.onclick=function(){
-      var d = parse(START); d.setDate(d.getDate()+(wk-1)*7);
+      var d = parse(start); d.setDate(d.getDate()+(wk-1)*7);
       VIEW_DATE = ymd(d); show("today"); };
     })(i);
     rail.appendChild(b);
@@ -713,9 +901,139 @@ function shiftDay(delta){
   show("today");
 }
 
+/* The stairs card: prescription dials, recipe, log fields, HR readout. */
+function stairsBlock(date, e, st, num){
+  var s1 = el("section","block");
+  var h1 = el("div","blockhead");
+  h1.innerHTML = '<span class="num">'+num+'</span><h2>Stairs</h2><span class="sub">'+esc(st.title)+'</span>';
+  s1.appendChild(h1);
+
+  var card = el("div","stair");
+  var dials = el("div","dials");
+  if(!st.flights) dials.hidden = true;
+  dials.appendChild(el("div","dial accent",'<div class="v">'+st.flights+'</div><div class="k">flights</div>'));
+  dials.appendChild(el("div","dial",'<div class="v">'+st.level+'</div><div class="k">level</div>'));
+  dials.appendChild(el("div","dial",'<div class="v">'+cadence(st.level)+'</div><div class="k">spm</div>'));
+  dials.appendChild(el("div","dial",'<div class="v">'+st.min+'</div><div class="k">min approx</div>'));
+  card.appendChild(dials);
+  card.appendChild(el("p","recipe", st.recipe));
+
+  var sg = el("div","row2");
+  sg.appendChild(numField("Flights done","st-flights", e.stairs.flights, function(v){ entry(date).stairs.flights=v; persist(); }));
+  sg.appendChild(numField("Level","st-level", e.stairs.level, function(v){ entry(date).stairs.level=v; persist(); }));
+  card.appendChild(sg);
+  var sg2 = el("div","row2");
+  sg2.appendChild(numField("Minutes","st-min", e.stairs.min, function(v){ entry(date).stairs.min=v; persist(); }));
+  sg2.appendChild(numField("Avg bpm","st-bpm", e.stairs.bpm, function(v){ entry(date).stairs.bpm=v; renderHR(date); persist(); }));
+  card.appendChild(sg2);
+  var sg3 = el("div","row2");
+  sg3.appendChild(numField("RPE 1–10","st-rpe", e.stairs.rpe, function(v){ entry(date).stairs.rpe=v; persist(); }));
+  card.appendChild(sg3);
+  var snf = el("label","field");
+  snf.innerHTML = '<span>Stairs notes — intervals, level changes, anything the numbers miss</span>';
+  var sta = document.createElement("textarea");
+  sta.rows = 2; sta.id="st-notes"; sta.value = e.stairs.notes||"";
+  sta.addEventListener("input", function(){ entry(date).stairs.notes = sta.value; persist(); });
+  snf.appendChild(sta); card.appendChild(snf);
+
+  var hrBox = el("div","hrbox"); hrBox.id = "hrbox";
+  card.appendChild(hrBox);
+  renderHR(date, st);
+  s1.appendChild(card);
+  return s1;
+}
+
+/* ---------- post-SkyRise day ----------
+   Order: shoulder block → (lift → stairs) on lift-first days, else
+   (stairs → gym/core) → hanging leg raises → notes. */
+function renderPostToday(root, date, e){
+  var d = parse(date), wd = d.getDay(), pw = postWeekOf(date);
+  var ph = POST_PHASES[pw-1];
+  var base = POST_DAYS[wd];
+  var plan = {gym:base.gym, gymMin:base.gymMin, stair:base.stair, liftFirst:!!base.liftFirst,
+    list:base.list.map(function(x){ var c={}; for(var k in x) c[k]=x[k]; c.sets=postSets(x, pw); return c; })};
+  var st = stairSession(plan.stair, pw);
+  var total = SHOULDER_MIN + HLR_MIN + st.min + (plan.gym ? plan.gymMin : 0);
+
+  var head = el("div","dayhead");
+  var prevBtn = el("button","daynav","‹");
+  prevBtn.type = "button"; prevBtn.setAttribute("aria-label","Previous day");
+  prevBtn.onclick = function(){ shiftDay(-1); };
+  head.appendChild(prevBtn);
+  head.appendChild(el("div","bigday", DAYNAME[wd].slice(0,3).toUpperCase()));
+  var nextBtn = el("button","daynav","›");
+  nextBtn.type = "button"; nextBtn.setAttribute("aria-label","Next day");
+  nextBtn.onclick = function(){ shiftDay(1); };
+  head.appendChild(nextBtn);
+  var meta = el("div","daymeta");
+  meta.innerHTML = '<div class="wk">Post-climb week '+pw+' · '+esc(ph.name)+'</div><div class="ph">'+pretty(date)+'</div>';
+  head.appendChild(meta);
+  if(wd !== 0){
+    var est = el("div","est");
+    est.innerHTML = '<div class="n">'+total+'</div><div class="l">min total</div>';
+    head.appendChild(est);
+  }
+  root.appendChild(head);
+
+  if(date > POST_END){
+    root.appendChild(el("div","notice warn",
+      "<strong>The 8-week block ended on Sunday 3 January.</strong> This day repeats week 8. Ask Claude for a check-in and the next block."));
+  }
+  if(total > 75){
+    root.appendChild(el("div","notice warn",
+      "<strong>Long one — about "+total+" minutes.</strong> From a 4:00 start that finishes around "+
+      finishTime(total)+". If the clock is tight, drop the two lowest accessories; keep the main lifts, the face pulls and the shoulder block."));
+  }
+  if(wd === 1) root.appendChild(el("div","notice", esc(ph.note)));
+  if(ph.hold && plan.gym && wd !== 0){
+    root.appendChild(el("div","notice",
+      "<strong>"+esc(ph.name)+" week.</strong> Same weights as last time — the app holds every load this week."));
+  }
+
+  var n = 1;
+  /* ---- shoulder block, every day ---- */
+  var sb = el("section","block");
+  sb.appendChild(el("div","blockhead",'<span class="num">'+(n++)+'</span><h2>Shoulder block</h2><span class="sub">daily · ~'+SHOULDER_MIN+' min</span>'));
+  sb.appendChild(el("div","notice",
+    "Light, about 3/10, with a 2–3 second lowering. <strong>Shoulder gate:</strong> a twinge holds that exercise's load; sharp, persistent or radiating pain ends it."));
+  for(var i=0;i<SHOULDER_DAILY.length;i++) sb.appendChild(exCard(SHOULDER_DAILY[i], i, date, e, false));
+  root.appendChild(sb);
+
+  function gymBlock(){
+    var s3 = el("section","block");
+    s3.appendChild(el("div","blockhead",'<span class="num">'+(n++)+'</span><h2>'+esc(plan.gym)+'</h2><span class="sub">~'+plan.gymMin+' min</span>'));
+    if(plan.list.length && plan.list[0].sets >= 3 && !/^Core/.test(plan.gym)){
+      s3.appendChild(el("div","notice",
+        "<strong>Main lifts:</strong> sets 1–2 stop a rep or two short; the last set stops within one clean rep of failure. Never to failure — a rep with broken form ends the set."));
+    }
+    for(var j=0;j<plan.list.length;j++) s3.appendChild(exCard(plan.list[j], j, date, e, false));
+    root.appendChild(s3);
+  }
+  var showStairs = st.flights > 0 || wd === 0;
+  if(plan.liftFirst){
+    gymBlock();
+    root.appendChild(stairsBlock(date, e, st, n++));
+  } else {
+    if(showStairs) root.appendChild(stairsBlock(date, e, st, n++));
+    if(plan.gym) gymBlock();
+    if(!showStairs) root.appendChild(stairsBlock(date, e, st, n++));
+  }
+
+  /* ---- hanging leg raises, every day ---- */
+  var sh = el("section","block");
+  sh.appendChild(el("div","blockhead",'<span class="num">'+(n++)+'</span><h2>Hanging leg raises</h2><span class="sub">'+
+    (wd === 3 ? "progression day" : "daily · 3 × 10")+'</span>'));
+  if(wd === 2 || wd === 4) sh.appendChild(el("div","notice","After the pulling — never before the rows and pulldowns."));
+  sh.appendChild(exCard(HLR_EX, 0, date, e, false));
+  root.appendChild(sh);
+
+  renderNotes(root, date, e);
+}
+
 function renderToday(){
   var root = document.getElementById("view-today");
   root.innerHTML = "";
+  if(inPost(VIEW_DATE)){ renderPostToday(root, VIEW_DATE, entry(VIEW_DATE)); return; }
   var date = VIEW_DATE;
   var d = parse(date), wd = templateDay(date), cwd = d.getDay();
   var wk = weekOf(date);
@@ -788,44 +1106,7 @@ function renderToday(){
   }
 
   /* ---- 1. stairs ---- */
-  var s1 = el("section","block");
-  var h1 = el("div","blockhead");
-  h1.innerHTML = '<span class="num">1</span><h2>Stairs</h2><span class="sub">'+esc(st.title)+'</span>';
-  s1.appendChild(h1);
-
-  var card = el("div","stair");
-  var dials = el("div","dials");
-  if(!st.flights) dials.hidden = true;
-  dials.appendChild(el("div","dial accent",'<div class="v">'+st.flights+'</div><div class="k">flights</div>'));
-  dials.appendChild(el("div","dial",'<div class="v">'+st.level+'</div><div class="k">level</div>'));
-  dials.appendChild(el("div","dial",'<div class="v">'+cadence(st.level)+'</div><div class="k">spm</div>'));
-  dials.appendChild(el("div","dial",'<div class="v">'+st.min+'</div><div class="k">min approx</div>'));
-  card.appendChild(dials);
-  card.appendChild(el("p","recipe", st.recipe));
-
-  var sg = el("div","row2");
-  sg.appendChild(numField("Flights done","st-flights", e.stairs.flights, function(v){ entry(date).stairs.flights=v; persist(); }));
-  sg.appendChild(numField("Level","st-level", e.stairs.level, function(v){ entry(date).stairs.level=v; persist(); }));
-  card.appendChild(sg);
-  var sg2 = el("div","row2");
-  sg2.appendChild(numField("Minutes","st-min", e.stairs.min, function(v){ entry(date).stairs.min=v; persist(); }));
-  sg2.appendChild(numField("Avg bpm","st-bpm", e.stairs.bpm, function(v){ entry(date).stairs.bpm=v; renderHR(date); persist(); }));
-  card.appendChild(sg2);
-  var sg3 = el("div","row2");
-  sg3.appendChild(numField("RPE 1–10","st-rpe", e.stairs.rpe, function(v){ entry(date).stairs.rpe=v; persist(); }));
-  card.appendChild(sg3);
-  var snf = el("label","field");
-  snf.innerHTML = '<span>Stairs notes — intervals, level changes, anything the numbers miss</span>';
-  var sta = document.createElement("textarea");
-  sta.rows = 2; sta.id="st-notes"; sta.value = e.stairs.notes||"";
-  sta.addEventListener("input", function(){ entry(date).stairs.notes = sta.value; persist(); });
-  snf.appendChild(sta); card.appendChild(snf);
-
-  var hrBox = el("div","hrbox"); hrBox.id = "hrbox";
-  card.appendChild(hrBox);
-  renderHR(date, st);
-  s1.appendChild(card);
-  root.appendChild(s1);
+  root.appendChild(stairsBlock(date, e, st, 1));
 
   /* ---- 2. shoulder prep ---- */
   if(plan.gym){
@@ -959,7 +1240,8 @@ function exCard(x, idx, date, e, isWarm){
      are already logged if Beck did extra sets beyond the prescription */
   var rowCount = Math.max(x.sets, sets.length);
 
-  var sg = isWarm ? {kind:"first"} : suggestLoad(x, date, weekOf(date));
+  var lm = loadMode(date);
+  var sg = isWarm ? {kind:"first"} : suggestLoad(x, date, lm.week, lm.holdWhy);
   var lbl = suggestLabel(sg);
 
   var head = el("div","exhead");
@@ -974,7 +1256,8 @@ function exCard(x, idx, date, e, isWarm){
   var body = el("div","exbody");
   body.hidden = true;
   if(x.setup) body.appendChild(el("div","setup", esc(x.setup)));
-  if(WHY[x.id]) body.appendChild(el("p","why", "<strong>Why it's here:</strong> "+esc(WHY[x.id])));
+  var whyTxt = x.why || WHY[x.id];
+  if(whyTxt) body.appendChild(el("p","why", "<strong>Why it's here:</strong> "+esc(whyTxt)));
   if(x.cue)   body.appendChild(el("p","cue", esc(x.cue)));
   if(x.flag)  body.appendChild(el("div","flag", esc(x.flag)));
   if(x.v){
@@ -986,7 +1269,10 @@ function exCard(x, idx, date, e, isWarm){
   if(!isWarm){
     /* --- what to lift today --- */
     var call = el("div","call" + (sg.kind === "up" ? " up" : sg.kind === "first" ? " first" : ""));
-    if(sg.kind === "first"){
+    if(x.bw){
+      call.innerHTML = '<div class="ct">Bodyweight or band</div><div class="cw">'+
+        'Log your reps. Leave Weight blank, or enter 0, if there is no load.</div>';
+    } else if(sg.kind === "first"){
       call.innerHTML = '<div class="ct">Find your weight</div><div class="cw">'+
         'Pick a load you can do <strong>all '+x.sets+' sets</strong> at the bottom of the range with clean form. '+
         'Go lighter than feels right — changing it mid-session is correct. Whatever you log becomes the target next time.</div>';
@@ -1147,10 +1433,6 @@ function renderNotes(root, date, e){
   h.innerHTML = '<span class="num">✎</span><h2>Notes</h2>';
   s.appendChild(h);
 
-  s.appendChild(el("div","notice",
-    "<strong>Today's targets.</strong> Protein: ~100 g from shakes, food on top, 130 g floor. "+
-    "Carbs: 40–60 g with the pre-session shake; ~180 g across the day is a menu, not a rule (see Meals)."));
-
   var nf = el("label","field");
   nf.innerHTML = '<span>Sleep, soreness, pain, anything cut short</span>';
   var ta = document.createElement("textarea");
@@ -1185,7 +1467,7 @@ function renderLog(){
       var d = dates[i], e = log[d];
       var card = el("div","entry");
       card.innerHTML = '<div class="d"><span class="dt">'+esc(pretty(d))+'</span>'+
-        '<span class="dw">Week '+weekOf(d)+'</span></div>';
+        '<span class="dw">'+(inPost(d) ? "Post week "+postWeekOf(d) : "Week "+weekOf(d))+'</span></div>';
       card.appendChild(el("div","body", esc(summarise(d, e))));
       root.appendChild(card);
     }
@@ -1201,7 +1483,10 @@ function renderLog(){
 }
 
 function allExercises(){
-  var all = {}, lists=[WARM_UP,UPPER_A,LOWER,UPPER_B,FULL,CORE,[CALF_EX,YOGA_EX]];
+  /* Post-block lists first, so where an id is shared the original name wins
+     for old entries; new ids get their new names. */
+  var all = {}, lists=[LOWER_A,UPPER_A_P,UPPER_B_P,LOWER_B,CORE_A,CORE_B,SHOULDER_DAILY,[HLR_EX],
+                       WARM_UP,UPPER_A,LOWER,UPPER_B,FULL,CORE,[CALF_EX,YOGA_EX]];
   for(var i=0;i<lists.length;i++) for(var j=0;j<lists[i].length;j++) all[lists[i][j].id]=lists[i][j];
   all.fly = all.fly || {id:"fly", n:"Cable fly"};          // retired 2026-10-05; old entries still export by name
   all.pt  = all.pt  || {id:"pt",  n:"Cable pull-through"}; // retired 2026-10-06
@@ -1222,7 +1507,7 @@ function summarise(date, e){
   for(var id in e.gym){
     var arr = e.gym[id], parts = [];
     for(var i=0;i<arr.length;i++){
-      if(arr[i] && (arr[i].w || arr[i].r)) parts.push((arr[i].w||"?")+"×"+(arr[i].r||"?"));
+      if(arr[i] && (arr[i].w || arr[i].r)) parts.push((arr[i].w||(all[id] && all[id].bw ? "BW" : "?"))+"×"+(arr[i].r||"?"));
     }
     if(parts.length) out.push((all[id] ? all[id].n : id)+": "+parts.join("  "));
   }
@@ -1238,7 +1523,7 @@ function doExport(){
   if(!dates.length){ txt += "\n(nothing logged yet)\n"; }
   for(var i=0;i<dates.length;i++){
     var d = dates[i];
-    txt += "\n## "+d+" — Wk "+weekOf(d)+", "+DAYNAME[parse(d).getDay()]+"\n"+summarise(d, log[d])+"\n";
+    txt += "\n## "+d+" — "+weekLabel(d)+", "+DAYNAME[parse(d).getDay()]+"\n"+summarise(d, log[d])+"\n";
   }
   pre.textContent = txt;
   pre.hidden = false;
@@ -1265,9 +1550,64 @@ function toast(msg){
 }
 
 /* ============ plan view ============ */
+/* Plan tab for the post-climb block. */
+function renderPostPlan(root){
+  var head = el("div","dayhead");
+  head.innerHTML = '<div class="bigday">PLAN</div><div class="daymeta">'+
+    '<div class="wk">9 Nov 2026 → 3 Jan 2027</div><div class="ph">Post-climb · strength-led · 8 weeks</div></div>';
+  root.appendChild(head);
+
+  var cur = postWeekOf(ymd(new Date()));
+  var sc = el("div","scroller");
+  var t = el("table","ptable");
+  t.innerHTML = "<thead><tr><th>Wk</th><th>Dates</th><th>Phase</th><th>What matters</th></tr></thead>";
+  var tb = document.createElement("tbody");
+  for(var i=1;i<=8;i++){
+    var a = parse(POST_START); a.setDate(a.getDate()+(i-1)*7);
+    var b = parse(POST_START); b.setDate(b.getDate()+(i-1)*7+6);
+    var tr = document.createElement("tr");
+    if(i===cur) tr.className = "now";
+    tr.innerHTML = '<td class="wk">'+i+'</td><td>'+a.getDate()+" "+MON[a.getMonth()]+" – "+b.getDate()+" "+MON[b.getMonth()]+
+      '</td><td>'+esc(POST_PHASES[i-1].name)+'</td><td>'+esc(POST_PHASES[i-1].note)+'</td>';
+    tb.appendChild(tr);
+  }
+  t.appendChild(tb); sc.appendChild(t); root.appendChild(sc);
+
+  var wk = el("section","block");
+  wk.appendChild(el("div","blockhead",'<span class="num">▦</span><h2>The week</h2>'));
+  var sc2 = el("div","scroller");
+  var t2 = el("table","ptable");
+  var rows = [
+    ["Mon","—","Lower A — leg press, machine squat, back extension"],
+    ["Tue","Easy 70 at L6, after lifting","Upper A — horizontal push/pull"],
+    ["Wed","Quality #1 — intervals","Core block A"],
+    ["Thu","Easy 70 at L6, after lifting","Upper B — vertical pull + landmine"],
+    ["Fri","—","Lower B — hip thrust, abduction, bridge holds"],
+    ["Sat","Quality #2 — tempo (benchmark in wk 4, 8)","Core + carries"],
+    ["Sun","Off","Off"]
+  ];
+  var h = "<thead><tr><th>Day</th><th>Stairs</th><th>Gym</th></tr></thead><tbody>";
+  for(var j=0;j<rows.length;j++) h += '<tr><td class="wk">'+rows[j][0]+'</td><td>'+rows[j][1]+'</td><td>'+rows[j][2]+'</td></tr>';
+  t2.innerHTML = h + "</tbody>";
+  sc2.appendChild(t2); wk.appendChild(sc2);
+  wk.appendChild(el("div","notice","<strong>Every day:</strong> the 5-minute shoulder block and hanging leg raises, 3 × 10."));
+  root.appendChild(wk);
+
+  var s = el("section","block");
+  s.appendChild(el("div","blockhead",'<span class="num">!</span><h2>The rules</h2>'));
+  s.appendChild(el("div","notice",
+    "<strong>Harder, not longer.</strong> Flights never exceed 100. Level, speed and shorter rests are the only stair dials, and each moves only through its gate."));
+  s.appendChild(el("div","notice",
+    "<strong>No overhead barbell pressing, no dips.</strong> Ever. Neutral-grip, landmine and cable variants only. No leg curls."));
+  s.appendChild(el("div","notice warn",
+    "<strong>Never to failure.</strong> Ramp and deload weeks hold every weight. A missed week is absorbed, not repaid."));
+  root.appendChild(s);
+}
+
 function renderPlan(){
   var root = document.getElementById("view-plan");
   root.innerHTML = "";
+  if(inPost(ymd(new Date()))){ renderPostPlan(root); renderHrBands(root); return; }
   var head = el("div","dayhead");
   head.innerHTML = '<div class="bigday">PLAN</div><div class="daymeta">'+
     '<div class="wk">21 Sep → 8 Nov 2026</div><div class="ph">Willis Tower · 105 flights · 2,149 stairs</div></div>';
@@ -1299,6 +1639,21 @@ function renderPlan(){
     "<strong>Nothing new in taper week.</strong> No new exercise, no new load, no last hard session."));
   root.appendChild(s);
 
+  renderHrBands(root);
+
+  var s2 = el("section","block");
+  s2.appendChild(el("div","blockhead",'<span class="num">▲</span><h2>Event morning</h2>'));
+  var tbl = el("div","stair");
+  tbl.innerHTML =
+    '<p class="recipe"><strong>8:00 AM wave.</strong> Most of your sessions start at 4–5 AM, but you have trained later in the day before, so this is a shift in timing, not a first. Settle the morning routine below and stick to it.</p>'+
+    '<p class="recipe">~4:30 wake, <strong>don\'t train</strong> · 5:15 breakfast · hydrate then stop by 7:15 · 7:30 hand off gear and warm up · <strong>8:00 climb, dry</strong>.</p>'+
+    '<p class="recipe"><strong>Nothing can be carried into the stairwell — water included.</strong> One light layer; the shaft gets hot and still. Event start is listed as 7:00 AM, so check when check-in closes.</p>'+
+    '<p class="recipe">A hot enclosed shaft, a maximal effort and a stimulant all push the same direction on heat and heart rate. Worth one question to your prescriber before race day — not a reason to change anything on your own.</p>';
+  s2.appendChild(tbl);
+  root.appendChild(s2);
+}
+
+function renderHrBands(root){
   var sh = el("section","block");
   sh.appendChild(el("div","blockhead",'<span class="num">♥</span><h2>Your heart-rate bands</h2>'));
   var hc = el("div","stair");
@@ -1317,106 +1672,11 @@ function renderPlan(){
   hc.appendChild(r2);
   sh.appendChild(hc);
   root.appendChild(sh);
-
-  var s2 = el("section","block");
-  s2.appendChild(el("div","blockhead",'<span class="num">▲</span><h2>Event morning</h2>'));
-  var tbl = el("div","stair");
-  tbl.innerHTML =
-    '<p class="recipe"><strong>8:00 AM wave.</strong> Most of your sessions start at 4–5 AM, but you have trained later in the day before, so this is a shift in timing, not a first. Settle the morning routine below and stick to it.</p>'+
-    '<p class="recipe">~4:30 wake, <strong>don\'t train</strong> · 5:15 breakfast · hydrate then stop by 7:15 · 7:30 hand off gear and warm up · <strong>8:00 climb, dry</strong>.</p>'+
-    '<p class="recipe"><strong>Nothing can be carried into the stairwell — water included.</strong> One light layer; the shaft gets hot and still. Event start is listed as 7:00 AM, so check when check-in closes.</p>'+
-    '<p class="recipe">A hot enclosed shaft, a maximal effort and a stimulant all push the same direction on heat and heart rate. Worth one question to your prescriber before race day — not a reason to change anything on your own.</p>';
-  s2.appendChild(tbl);
-  root.appendChild(s2);
-}
-
-/* ============ meals view ============ */
-function mealTable(head, rows){
-  var h = "<thead><tr>"+head.map(function(x){ return "<th>"+x+"</th>"; }).join("")+"</tr></thead><tbody>";
-  rows.forEach(function(r){
-    h += "<tr>"+r.map(function(x){ return "<td>"+x+"</td>"; }).join("")+"</tr>";
-  });
-  var t = el("table","ptable"); t.innerHTML = h+"</tbody>";
-  var sc = el("div","scroller"); sc.appendChild(t);
-  return sc;
-}
-/* nodes: strings become paragraphs in one panel; elements (tables) sit outside it. */
-function mealBlock(glyph, title, nodes){
-  var s = el("section","block");
-  s.appendChild(el("div","blockhead",'<span class="num">'+glyph+'</span><h2>'+title+'</h2>'));
-  var panel = null;
-  nodes.forEach(function(n){
-    if(typeof n === "string"){
-      if(!panel){ panel = el("div","stair"); s.appendChild(panel); }
-      panel.appendChild(el("p","recipe",n));
-    } else { s.appendChild(n); panel = null; }
-  });
-  return s;
-}
-function renderMeals(){
-  var root = document.getElementById("view-meals");
-  root.innerHTML = "";
-  var head = el("div","dayhead");
-  head.innerHTML = '<div class="bigday">MEALS</div><div class="daymeta">'+
-    '<div class="wk">~180 g carbs / day</div><div class="ph">Lighter plan · steel-cut oats · saved 15 Oct 2026</div></div>';
-  root.appendChild(head);
-  root.appendChild(el("div","notice",
-    "<strong>The plan is 40–60 g of carbs with the pre-session shake.</strong> Everything else here is a menu, not a prescription. Carb counts are approximate."));
-
-  root.appendChild(mealBlock("1","Pre-session · 3:30 AM",[
-    mealTable(["Option","Carbs","Notes"],[
-      ["<strong>A.</strong> Banana + 1 tbsp honey (stirred into the shake or drizzled on the banana)","~44 g","Shelf-stable, no extra shopping. Use for race rehearsals and tempo days (low fiber)."],
-      ["<strong>B.</strong> Blend the shake with ½ cup milk and a banana","~36 g (~42 g with 1 tsp honey)","Easiest when appetite is low."],
-      ["<strong>C.</strong> Small jar: ½ cup cooked steel-cut oats, ½ cup milk, 1 tbsp honey. Stir the scoop in, skip the separate shake.","~41 g","Test on an easy day, not Saturday."],
-      ["<strong>D.</strong> Half a plain bagel with 1 tbsp jam (optional: needs bagels and jam)","~40 g","Lowest fiber, if you want a change from A."]
-    ]),
-    "Race morning is the 8:00 wave, so you will eat about 2.5–3 hours before the start, a different timing than usual. Rehearse option A on a Saturday and keep it the same on the day."
-  ]));
-
-  root.appendChild(mealBlock("2","Post-session · ~5:45",[
-    "<strong>Overnight oats jar (~45 g carbs, ~15 g protein):</strong> ¾ cup cooked steel-cut oats (¼ cup dry), ½ cup milk, ¼ cup plain Greek yogurt, ½ cup frozen berries. Optional honey drizzle: +~17 g. Add a banana in the morning so it does not brown. Shake alongside if wanted.",
-    "<strong>Batch, Sunday (~30 min):</strong> 1½ cups dry steel-cut oats + 4½ cups water + a pinch of salt. Boil, then simmer 25–30 min, stirring now and then (Instant Pot: 10 min high pressure, 10 min natural release). Makes about 6 portions of ¾ cup cooked.",
-    "Fridge 3 portions for Mon–Wed. Freeze the other 3 and move them to the fridge Wednesday night for Thu–Sat. Each night stir a portion with the milk, yogurt and berries. Eat cold, or microwave 60–90 sec. Cooked oats keep about 4 days in the fridge."
-  ]));
-
-  root.appendChild(mealBlock("3","Midday · by ~11:30",[
-    "A prescribed stimulant suppresses appetite until about then, so pick the easiest option, hungry or not.",
-    "<strong>Half-size rice bowl (~25 g):</strong> ½ cup cooked rice, chicken thighs, frozen veg. With ½ cup canned beans instead of chicken: ~45 g.",
-    "<strong>Peanut butter and banana open-face (~30 g):</strong> one slice of bread, peanut butter, half a banana.",
-    "<strong>Freezer smoothie bag (~40 g):</strong> ½ banana, ½ cup berries, ¼ cup cooked steel-cut oats. Blend with ½ cup milk and ¼ cup yogurt. The one for days food is unappealing."
-  ]));
-
-  root.appendChild(mealBlock("4","Afternoon and dinner",[
-    "<strong>Snack (15–25 g):</strong> apple with peanut butter or an applesauce cup (one date works too, if you have them).",
-    "<strong>Dinner:</strong> a normal plate built around a starch: ½–1 cup rice, potato or pasta (~22–45 g)."
-  ]));
-
-  root.appendChild(mealBlock("5","A typical day",[
-    mealTable(["Time","What","Carbs"],[
-      ["3:30","Shake + option A","~42 g"],
-      ["~5:45","Oats jar","~45 g"],
-      ["~11:30","Rice bowl","~25 g"],
-      ["Afternoon","Snack","~20 g"],
-      ["Dinner","Starch + protein + veg","~45 g"]
-    ]),
-    "About 180 g of carbs. Protein runs ~100 g without a second shake and ~125 g with one; the 130 g floor is within reach."
-  ]));
-
-  root.appendChild(mealBlock("6","Prep and shopping",[
-    "<strong>Sunday (~45 min):</strong> the steel-cut batch (6 portions, 3 frozen), ½ cup dry rice (about 3 half-cup portions), ~1 lb chicken thighs, 1–2 freezer smoothie bags. Scale the rice and chicken up if you eat bowls more than three times a week. <strong>Wednesday night (~2 min):</strong> move the frozen oats portions to the fridge.",
-    "<strong>Already have:</strong> steel-cut oats, milk (at least a quart for the week), honey, peanut butter.",
-    "<strong>Buy, about one week:</strong> 6 bananas; 1 bag (16 oz) frozen sliced bananas; 16 oz frozen mixed berries; 16–17 oz plain Greek yogurt; ~1 lb boneless chicken thighs; 1 small bag white rice; 1 steam bag frozen vegetables; 1 loaf bread (freeze what you do not use); 3 apples; 1 pack applesauce cups. <strong>Optional:</strong> dates; plain bagels and jam (option D).",
-    "Assumed week: 6 pre-session mornings, 6 oats jars, 6 midday meals (3 rice bowls, 2 peanut butter and banana open-faces, 1 smoothie), 6 snacks; dinners not counted. Canned beans can replace the chicken."
-  ]));
-
-  root.appendChild(mealBlock("7","If it feels like too much",[
-    "<strong>1.</strong> Pre-session only (shake + banana + honey, ~45 g); everything else as usual. <strong>2.</strong> Add the oats jar without honey or banana (~45 g). <strong>3.</strong> Add a half-size midday bowl (~25 g)."
-  ]));
 }
 
 /* ============ tabs ============ */
 function show(which){
-  var names = ["today","log","plan","meals"];
+  var names = ["today","log","plan"];
   for(var i=0;i<names.length;i++){
     var n = names[i];
     document.getElementById("view-"+n).hidden = (n !== which);
@@ -1425,7 +1685,6 @@ function show(which){
   if(which==="today") renderToday();
   if(which==="log")   renderLog();
   if(which==="plan")  renderPlan();
-  if(which==="meals") renderMeals();
   renderRail();
   window.scrollTo(0,0);
 }
@@ -1440,7 +1699,6 @@ function boot(){
   document.getElementById("tab-today").onclick = function(){ VIEW_DATE = ymd(new Date()); show("today"); };
   document.getElementById("tab-log").onclick   = function(){ show("log"); };
   document.getElementById("tab-plan").onclick  = function(){ show("plan"); };
-  document.getElementById("tab-meals").onclick = function(){ show("meals"); };
 
   var tb = document.getElementById("themeBtn");
   try{ var saved = localStorage.getItem("flights105.theme");
@@ -1462,7 +1720,7 @@ function boot(){
 }
 /* Keep BUILD in step with CACHE in sw.js. The footer shows both; if they
    differ the page is stale and the new version is still on its way. */
-var BUILD = "v25";
+var BUILD = "v26";
 function showCacheVersion(){
   if(!("caches" in window)) return;
   caches.keys().then(function(keys){
