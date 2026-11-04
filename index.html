@@ -368,8 +368,7 @@ var LOWER_A = [
        "Take the setup from the video, not the depth. Go only as deep as your lower back stays flat on the pad. Alternate video: https://www.youtube.com/watch?v=hglQExHCM9Q"),
     {why:"Adds a squat pattern to the leg press, trained on a machine so the shoulder and lower back aren't the limit."}),
   P(ex("be","45° back extension",3,"8–12","Hip-hinge style, spine neutral. Hold a plate once bodyweight is easy.","Hinge at the hip, neutral spine. Add a plate when all sets hit the top.",V.be),
-    {why:"Strengthens the lower back and hips that hold a hinged-forward posture, and loads the hamstrings gently without a curl."}),
-  ex("cr","Standing calf raise",2,"12–15","Machine","Full stretch at the bottom, pause at the top.",V.cr)
+    {why:"Strengthens the lower back and hips that hold a hinged-forward posture, and loads the hamstrings gently without a curl."})
 ];
 var UPPER_A_P = [
   ex("csr","Chest-supported row",4,"6–10","Plate-loaded, neutral grip","Drive elbows back, not up. Pause a beat at the top.",V.csr),
@@ -399,8 +398,7 @@ var LOWER_B = [
      "Gated on a quiet next day. Stop on anything sharp, or a tug in the back of the thigh that lingers. If it tugs, hold or skip it — nothing else backs off."),
   P(ex("lpB","Leg press, moderate",2,"10–12","Moderate — nowhere near a hard set. Saturday is tempo.","Knees track over toes. Never lock them out.",V.lp,
        "Keep this light. It is the day before the tempo climb."),
-    {why:"A light second dose of leg work that keeps the quads trained without costing Saturday's tempo."}),
-  ex("cr","Standing calf raise",2,"12–15","Machine","Full stretch at the bottom, pause at the top.",V.cr)
+    {why:"A light second dose of leg work that keeps the quads trained without costing Saturday's tempo."})
 ];
 var CORE_A = [
   ex("db","Dead bug",3,"10 / side","Floor","Ribs down, low back flat. Slow.",V.db),
@@ -425,7 +423,7 @@ var SHOULDER_DAILY = [
        {why:"Primes the shoulder blades to move properly before any hanging or pulling."}))
 ];
 var HLR_EX = BW(P(ex("hlr","Hanging leg raises",3,"10","Bar hang, bent knee. Set 1 centre, set 2 left, set 3 right.","Tilt the pelvis first, then bring the knees up without swinging. Wednesday is the progression day: when all three sets are clean at 15, go to straight knees, then add ankle weight. Other days stay at 3 × 10.",null,
-    "Do them after the pulling, never before rows and pulldowns. Shoulder gate applies."),
+    "Part of the daily block (Beck, 2026-11-04). On Tue/Thu that puts them before the rows and pulldowns: if the heavy pulling feels weak, that's the first thing to check. Shoulder gate applies."),
   {why:"The main ab movement of the block, done daily. The centre, left and right pattern covers the obliques too."}));
 
 /* Saturday yoga in the post block (Beck, 2026-11-04): the short session,
@@ -522,7 +520,8 @@ var POST_DAYS = {
   6:{gym:"Core + carries",           list:CORE_B,     gymMin:12, stair:"p-tempo"},
   0:{gym:null, list:[], gymMin:0, stair:"p-rest"}
 };
-var SHOULDER_MIN = 5, HLR_MIN = 3;
+var SHOULDER_MIN = 5, HLR_MIN = 3, CALF_MIN = 3;
+var CALF_DAILY = ex("crx","Standing calf raise",2,"12–15","Machine, or bodyweight off a step edge if none free","Full stretch at the bottom, pause at the top.",V.cr);
 
 /* Which block a date falls in, and the week within it. */
 function inPost(date){ return date >= POST_START; }
@@ -952,8 +951,8 @@ function stairsBlock(date, e, st, num){
 }
 
 /* ---------- post-SkyRise day ----------
-   Order: shoulder block → (lift → stairs) on lift-first days, else
-   (stairs → gym/core) → hanging leg raises → notes. */
+   Order: daily block (shoulder, hanging leg raises, calves) → (lift → stairs)
+   on lift-first days, else (stairs → gym/core) → Saturday yoga → notes. */
 function renderPostToday(root, date, e){
   var d = parse(date), wd = d.getDay(), pw = postWeekOf(date);
   var ph = POST_PHASES[pw-1];
@@ -961,7 +960,7 @@ function renderPostToday(root, date, e){
   var plan = {gym:base.gym, gymMin:base.gymMin, stair:base.stair, liftFirst:!!base.liftFirst,
     list:base.list.map(function(x){ var c={}; for(var k in x) c[k]=x[k]; c.sets=postSets(x, pw); return c; })};
   var st = stairSession(plan.stair, pw);
-  var total = SHOULDER_MIN + HLR_MIN + st.min + (plan.gym ? plan.gymMin : 0) + (wd === 6 ? YOGA_MIN_POST : 0);
+  var total = SHOULDER_MIN + HLR_MIN + CALF_MIN + st.min + (plan.gym ? plan.gymMin : 0) + (wd === 6 ? YOGA_MIN_POST : 0);
 
   var head = el("div","dayhead");
   var prevBtn = el("button","daynav","‹");
@@ -1001,10 +1000,12 @@ function renderPostToday(root, date, e){
   var n = 1;
   /* ---- shoulder block, every day ---- */
   var sb = el("section","block");
-  sb.appendChild(el("div","blockhead",'<span class="num">'+(n++)+'</span><h2>Shoulder block</h2><span class="sub">daily · ~'+SHOULDER_MIN+' min</span>'));
+  sb.appendChild(el("div","blockhead",'<span class="num">'+(n++)+'</span><h2>Daily block</h2><span class="sub">every day · ~'+(SHOULDER_MIN+HLR_MIN+CALF_MIN)+' min</span>'));
   sb.appendChild(el("div","notice",
-    "Light, about 3/10, with a 2–3 second lowering. <strong>Shoulder gate:</strong> a twinge holds that exercise's load; sharp, persistent or radiating pain ends it."));
-  for(var i=0;i<SHOULDER_DAILY.length;i++) sb.appendChild(exCard(SHOULDER_DAILY[i], i, date, e, false));
+    "Shoulder work, then hanging leg raises"+(wd === 3 ? " (Wednesday is the progression day)" : "")+", then calves. "+
+    "Shoulder work light, about 3/10, with a 2–3 second lowering. <strong>Shoulder gate:</strong> a twinge holds that exercise's load; sharp, persistent or radiating pain ends it."));
+  var daily = SHOULDER_DAILY.concat([HLR_EX, CALF_DAILY]);
+  for(var i=0;i<daily.length;i++) sb.appendChild(exCard(daily[i], i, date, e, false));
   root.appendChild(sb);
 
   function gymBlock(){
@@ -1027,13 +1028,6 @@ function renderPostToday(root, date, e){
     if(!showStairs) root.appendChild(stairsBlock(date, e, st, n++));
   }
 
-  /* ---- hanging leg raises, every day ---- */
-  var sh = el("section","block");
-  sh.appendChild(el("div","blockhead",'<span class="num">'+(n++)+'</span><h2>Hanging leg raises</h2><span class="sub">'+
-    (wd === 3 ? "progression day" : "daily · 3 × 10")+'</span>'));
-  if(wd === 2 || wd === 4) sh.appendChild(el("div","notice","After the pulling — never before the rows and pulldowns."));
-  sh.appendChild(exCard(HLR_EX, 0, date, e, false));
-  root.appendChild(sh);
 
   /* ---- yoga, Saturdays ---- */
   if(wd === 6){
@@ -1606,7 +1600,7 @@ function renderPostPlan(root){
   for(var j=0;j<rows.length;j++) h += '<tr><td class="wk">'+rows[j][0]+'</td><td>'+rows[j][1]+'</td><td>'+rows[j][2]+'</td></tr>';
   t2.innerHTML = h + "</tbody>";
   sc2.appendChild(t2); wk.appendChild(sc2);
-  wk.appendChild(el("div","notice","<strong>Every day:</strong> the 5-minute shoulder block and hanging leg raises, 3 × 10."));
+  wk.appendChild(el("div","notice","<strong>Every day:</strong> the daily block, ~11 min: shoulder work, hanging leg raises 3 × 10, standing calf raise 2 × 12–15."));
   root.appendChild(wk);
 
   var s = el("section","block");
@@ -1736,7 +1730,7 @@ function boot(){
 }
 /* Keep BUILD in step with CACHE in sw.js. The footer shows both; if they
    differ the page is stale and the new version is still on its way. */
-var BUILD = "v27";
+var BUILD = "v28";
 function showCacheVersion(){
   if(!("caches" in window)) return;
   caches.keys().then(function(keys){
