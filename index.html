@@ -258,8 +258,9 @@ var START = "2026-09-21";          // Monday, week 1
 /* Post-SkyRise block (post-event-plan.md): 8 weeks, strength-led, from the
    Monday after the climb. Dates on or after POST_START use the POST_* tables
    below; everything before keeps the original 7-week block untouched. */
-var POST_START = "2026-11-09";     // Monday, post week 1
-var POST_END   = "2027-01-03";     // Sunday, post week 8
+var POST_OFF   = "2026-11-09";     // Monday after the climb: the washed "week 0" (Beck, 2026-11-10)
+var POST_START = "2026-11-16";     // Monday, post week 1
+var POST_END   = "2027-01-10";     // Sunday, post week 8
 var FLIGHTS = 105, STAIRS = 2149, STEPS_PER_FLIGHT = 16;
 
 function cadence(l){ return 45 + (l-6)*5; }           // measured: L8=55, L6=45
@@ -279,13 +280,13 @@ var PHASES = [
    weights; 4 and 8 also run at two-thirds of the sets and carry the stair
    benchmark. */
 var POST_PHASES = [
-  {w:1, name:"Ramp",    hold:true,  note:"The day after the climb is a maximal effort in heat. Last-logged loads, no jumps, three sets on the main lifts. Wednesday is a short interval session and Saturday a short tempo. No progression gates this week."},
-  {w:2, name:"Build",   hold:false, note:"Full template. Double progression and the stair gates begin."},
-  {w:3, name:"Build",   hold:false, note:"Full template. Thanksgiving is Thursday 26 Nov: absorb a missed day, don't repay it."},
+  {w:1, name:"Ramp",    hold:true,  note:"First week back after the off week. Last-logged loads, no jumps, three sets on the main lifts. Wednesday is a short interval session and Saturday a short tempo. No progression gates this week."},
+  {w:2, name:"Build",   hold:false, note:"Full template. Double progression and the stair gates begin. Thanksgiving is Thursday 26 Nov: absorb a missed day, don't repay it."},
+  {w:3, name:"Build",   hold:false, note:"Full template."},
   {w:4, name:"Deload",  hold:true,  note:"Two-thirds of the sets, same weights. Wednesday intervals are short. Saturday is the stair benchmark: a timed 100 flights at L8."},
   {w:5, name:"Build",   hold:false, note:"Full template. Loads restart from the week 4 numbers."},
-  {w:6, name:"Build",   hold:false, note:"Full template."},
-  {w:7, name:"Build",   hold:false, note:"Full template. Holiday week: adjust to travel, and absorb rather than repay a missed day."},
+  {w:6, name:"Build",   hold:false, note:"Full template. Christmas is Friday 25 Dec: adjust to travel, and absorb rather than repay a missed day."},
+  {w:7, name:"Build",   hold:false, note:"Full template. New Year's week: adjust to travel, and absorb rather than repay a missed day."},
   {w:8, name:"Deload",  hold:true,  note:"Two-thirds of the sets, same weights. Saturday is the stair benchmark again: compare against week 4 and the ~29 min reference from September."}
 ];
 
@@ -524,17 +525,18 @@ var SHOULDER_MIN = 5, HLR_MIN = 3, CALF_MIN = 3;
 var CALF_DAILY = ex("crx","Standing calf raise",2,"12–15","Machine, or bodyweight off a step edge if none free","Full stretch at the bottom, pause at the top.",V.cr);
 
 /* Which block a date falls in, and the week within it. */
-function inPost(date){ return date >= POST_START; }
+function inPost(date){ return date >= POST_OFF; }   // includes the off week (postWeekOf = 0)
 function postWeekOf(date){
   var d = daysBetween(POST_START, date);
   if(d < 0) return 0;
   return Math.min(8, Math.floor(d/7)+1);
 }
-function weekLabel(date){ return inPost(date) ? "Post Wk "+postWeekOf(date) : "Wk "+weekOf(date); }
+function weekLabel(date){ return inPost(date) ? (postWeekOf(date) ? "Post Wk "+postWeekOf(date) : "Wk 0 (off)") : "Wk "+weekOf(date); }
 /* What suggestLoad needs to know about the week. Ramp and deload weeks hold
    every weight (pseudo-week 6 = "hold"); build weeks progress normally. */
 function loadMode(date){
   if(!inPost(date)) return {week:weekOf(date), holdWhy:null};
+  if(postWeekOf(date) === 0) return {week:6, holdWhy:"Off week: nothing prescribed."};
   var ph = POST_PHASES[postWeekOf(date)-1];
   return ph.hold
     ? {week:6, holdWhy: ph.name === "Ramp"
@@ -863,8 +865,9 @@ function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){
 function renderCountdown(){
   var today = ymd(new Date());
   if(inPost(today)){
-    document.getElementById("countdown").innerHTML = "Climbed 8 Nov · <b>week "+postWeekOf(today)+"</b> of 8"+
-      (today > POST_END ? " · block complete" : "");
+    document.getElementById("countdown").innerHTML = postWeekOf(today) === 0
+      ? "Climbed 8 Nov · <b>off week</b> · plan starts Mon 16 Nov"
+      : "Climbed 8 Nov · <b>week "+postWeekOf(today)+"</b> of 8"+(today > POST_END ? " · block complete" : "");
     return;
   }
   var left = daysBetween(today, EVENT);
@@ -955,8 +958,10 @@ function stairsBlock(date, e, st, num){
    on lift-first days, else (stairs → gym/core) → Saturday yoga → notes. */
 function renderPostToday(root, date, e){
   var d = parse(date), wd = d.getDay(), pw = postWeekOf(date);
-  var ph = POST_PHASES[pw-1];
-  var base = POST_DAYS[wd];
+  var ph = pw === 0
+    ? {name:"Off week", hold:false, note:"The week of 9 Nov was called a wash. Nothing is prescribed and nothing is owed; week 1 starts Monday 16 Nov."}
+    : POST_PHASES[pw-1];
+  var base = pw === 0 ? POST_DAYS[0] : POST_DAYS[wd];
   var plan = {gym:base.gym, gymMin:base.gymMin, stair:base.stair, liftFirst:!!base.liftFirst,
     list:base.list.map(function(x){ var c={}; for(var k in x) c[k]=x[k]; c.sets=postSets(x, pw); return c; })};
   var st = stairSession(plan.stair, pw);
@@ -975,16 +980,21 @@ function renderPostToday(root, date, e){
   var meta = el("div","daymeta");
   meta.innerHTML = '<div class="wk">Post-climb week '+pw+' · '+esc(ph.name)+'</div><div class="ph">'+pretty(date)+'</div>';
   head.appendChild(meta);
-  if(wd !== 0){
+  if(wd !== 0 && pw !== 0){
     var est = el("div","est");
     est.innerHTML = '<div class="n">'+total+'</div><div class="l">min total</div>';
     head.appendChild(est);
   }
   root.appendChild(head);
 
+  if(pw === 0){
+    root.appendChild(el("div","notice",
+      "<strong>Off week.</strong> "+esc(ph.note)+" If you train anyway, tell Claude what you did and it goes in the log as it happened."));
+    return;
+  }
   if(date > POST_END){
     root.appendChild(el("div","notice warn",
-      "<strong>The 8-week block ended on Sunday 3 January.</strong> This day repeats week 8. Ask Claude for a check-in and the next block."));
+      "<strong>The 8-week block ended on Sunday 10 January.</strong> This day repeats week 8. Ask Claude for a check-in and the next block."));
   }
   if(total > 75){
     root.appendChild(el("div","notice warn",
@@ -1477,7 +1487,7 @@ function renderLog(){
       var d = dates[i], e = log[d];
       var card = el("div","entry");
       card.innerHTML = '<div class="d"><span class="dt">'+esc(pretty(d))+'</span>'+
-        '<span class="dw">'+(inPost(d) ? "Post week "+postWeekOf(d) : "Week "+weekOf(d))+'</span></div>';
+        '<span class="dw">'+(inPost(d) ? (postWeekOf(d) ? "Post week "+postWeekOf(d) : "Off week") : "Week "+weekOf(d))+'</span></div>';
       card.appendChild(el("div","body", esc(summarise(d, e))));
       root.appendChild(card);
     }
@@ -1564,7 +1574,7 @@ function toast(msg){
 function renderPostPlan(root){
   var head = el("div","dayhead");
   head.innerHTML = '<div class="bigday">PLAN</div><div class="daymeta">'+
-    '<div class="wk">9 Nov 2026 → 3 Jan 2027</div><div class="ph">Post-climb · strength-led · 8 weeks</div></div>';
+    '<div class="wk">16 Nov 2026 → 10 Jan 2027</div><div class="ph">Post-climb · strength-led · 8 weeks</div></div>';
   root.appendChild(head);
 
   var cur = postWeekOf(ymd(new Date()));
@@ -1730,7 +1740,7 @@ function boot(){
 }
 /* Keep BUILD in step with CACHE in sw.js. The footer shows both; if they
    differ the page is stale and the new version is still on its way. */
-var BUILD = "v28";
+var BUILD = "v29";
 function showCacheVersion(){
   if(!("caches" in window)) return;
   caches.keys().then(function(keys){
