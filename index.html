@@ -259,8 +259,8 @@ var START = "2026-09-21";          // Monday, week 1
    Monday after the climb. Dates on or after POST_START use the POST_* tables
    below; everything before keeps the original 7-week block untouched. */
 var POST_OFF   = "2026-11-09";     // Monday after the climb: the washed "week 0" (Beck, 2026-11-10)
-var POST_START = "2026-11-16";     // Monday, post week 1
-var POST_END   = "2027-01-10";     // Sunday, post week 8
+var POST_START = "2026-11-23";     // Monday, post week 1 (moved from 11/16 on 2026-11-18: illness)
+var POST_END   = "2027-01-17";     // Sunday, post week 8
 var FLIGHTS = 105, STAIRS = 2149, STEPS_PER_FLIGHT = 16;
 
 function cadence(l){ return 45 + (l-6)*5; }           // measured: L8=55, L6=45
@@ -280,13 +280,13 @@ var PHASES = [
    weights; 4 and 8 also run at two-thirds of the sets and carry the stair
    benchmark. */
 var POST_PHASES = [
-  {w:1, name:"Ramp",    hold:true,  note:"First week back after the off week. Last-logged loads, no jumps, three sets on the main lifts. Wednesday is a short interval session and Saturday a short tempo. No progression gates this week."},
-  {w:2, name:"Build",   hold:false, note:"Full template. Double progression and the stair gates begin. Thanksgiving is Thursday 26 Nov: absorb a missed day, don't repay it."},
-  {w:3, name:"Build",   hold:false, note:"Full template."},
-  {w:4, name:"Deload",  hold:true,  note:"Two-thirds of the sets, same weights. Wednesday intervals are short. Saturday is the stair benchmark: a timed 100 flights at L8."},
-  {w:5, name:"Build",   hold:false, note:"Full template. Loads restart from the week 4 numbers."},
-  {w:6, name:"Build",   hold:false, note:"Full template. Christmas is Friday 25 Dec: adjust to travel, and absorb rather than repay a missed day."},
-  {w:7, name:"Build",   hold:false, note:"Full template. New Year's week: adjust to travel, and absorb rather than repay a missed day."},
+  {w:1, name:"Ramp",    hold:true,  note:"First week back. Last-logged loads, no jumps, three sets on the main lifts. Travel week: Wednesday 25 Nov and Saturday 28 Nov are flight days (off), and Malvern has no gym, so Thursday is an optional easy elliptical and Friday is off. Missed sessions are absorbed, not repaid. No progression gates."},
+  {w:2, name:"Build",   hold:false, note:"Full lifting template and double progression. The quality sessions stay ramp-size this week (Wednesday 3 interval reps, Saturday 50 flights at L8); they are the first intensity since late October. No stair gates yet."},
+  {w:3, name:"Build",   hold:false, note:"Full template. The stair gates begin."},
+  {w:4, name:"Deload",  hold:true,  note:"Two-thirds of the sets, same weights. Wednesday intervals are short. The stair benchmark (a timed 100 flights at L8) is on Friday 18 Dec, on the home StairMaster, because Saturday is the drive to Ames; Lower B is dropped this week."},
+  {w:5, name:"Build",   hold:false, note:"Full template, loads restart from the week 4 numbers. Ames trip: Monday is Lower A at the Ames gym; Tuesday 22 Dec (drive home) and Friday 25 Dec (flight) are off. Absorb, don't repay."},
+  {w:6, name:"Build",   hold:false, note:"Full template. Monday to Wednesday are at the Baltimore gym; Thursday 31 Dec is the flight home (off). Absorb, don't repay."},
+  {w:7, name:"Build",   hold:false, note:"Full template."},
   {w:8, name:"Deload",  hold:true,  note:"Two-thirds of the sets, same weights. Saturday is the stair benchmark again: compare against week 4 and the ~29 min reference from September."}
 ];
 
@@ -524,6 +524,25 @@ var POST_DAYS = {
 var SHOULDER_MIN = 5, HLR_MIN = 3, CALF_MIN = 3;
 var CALF_DAILY = ex("crx","Standing calf raise",2,"12–15","Machine, or bodyweight off a step edge if none free","Full stretch at the bottom, pause at the top.",V.cr);
 
+/* Per-date overrides (Beck, 2026-11-18). Travel days are off. Malvern (Thanksgiving)
+   has an elliptical but no gym. Wk 4's benchmark moves off the Ames drive day. */
+var TRAVEL = {
+  "2026-11-25":"Flight to Philadelphia (WN 246, MDW 12:50 PM). Quality #1 and Core A are dropped, not repaid.",
+  "2026-11-28":"Flight home (WN 1181, PHL 7:10 PM ET). Quality #2 and the weekend core and yoga are dropped, not repaid.",
+  "2026-12-19":"Drive to Ames. The benchmark moved to Friday 18 Dec; the core, carries and yoga are dropped, not repaid.",
+  "2026-12-22":"Drive home from Ames. Upper A and the easy stairs are dropped, not repaid.",
+  "2026-12-25":"Flight to Baltimore (WN 287, MDW 12:50 PM). Lower B is dropped, not repaid.",
+  "2026-12-31":"Flight home (WN 1070, BWI 1:35 PM ET). Upper B and the easy stairs are dropped, not repaid."
+};
+var POST_OVERRIDE = {
+  "2026-11-26":{gym:null, stair:"p-ellip", noDaily:true, note:"Thanksgiving in Malvern: no gym. An easy elliptical session is optional. Upper B is dropped, not repaid."},
+  "2026-11-27":{gym:null, stair:"p-off",   noDaily:true, note:"Malvern, no gym. Lower B is dropped, not repaid."},
+  "2026-12-18":{gym:null, stair:"p-tempo", note:"Benchmark day, moved here from Saturday (the Ames drive). Use the home StairMaster so it compares with the 20 Sep reference. Lower B is dropped this deload week."},
+  "2026-12-21":{note:"Ames gym. Swap in the same movement pattern if a machine is missing."},
+  "2026-12-26":{note:"Baltimore gym. If there is no stair machine: 30 minutes on the incline treadmill at RPE 7 or lower instead of the tempo."},
+  "2026-12-30":{note:"Baltimore gym. If there is no stair machine, skip the intervals this week (dropped, not repaid)."}
+};
+
 /* Which block a date falls in, and the week within it. */
 function inPost(date){ return date >= POST_OFF; }   // includes the off week (postWeekOf = 0)
 function postWeekOf(date){
@@ -575,7 +594,7 @@ function stairKindFor(wd, week){
 /* Target effort in RPE (1–10), shown beside the bpm band — Beck's request
    2026-10-13. RPE is the primary signal; bpm is the cross-check. */
 function rpeTarget(kind, week){
-  if(kind==="p-easy") return "5 or lower";
+  if(kind==="p-easy" || kind==="p-ellip") return "5 or lower";
   if(kind==="p-intervals") return "8 or lower on the L11 pushes, 4 or less on the L4 recoveries";
   if(kind==="p-tempo") return week===4 || week===8 ? "as hard as you can hold for 100 flights" : "about 7 — comfortably hard, 3–4 words of speech";
   if(kind==="easy") return "5–6";
@@ -595,7 +614,7 @@ function stairSession(kind, week){
 /* Post-SkyRise stair sessions. `week` is the POST week (1–8). Flights never
    exceed 100; level, speed and shorter rests are the only dials. */
 function postStairBase(kind, week){
-  var short = week===1 || week===4 || week===8;   // ramp and deload weeks
+  var short = week===1 || week===2 || week===4 || week===8;   // ramp (1, 2) and deload weeks
   if(kind==="p-none") return {
     title:"No stairs today", flights:0, level:4, min:0,
     recipe:"<strong>No stairs.</strong> Heavy leg day, and the legs are for lifting. Any climbing waits for tomorrow's plan.",
@@ -604,13 +623,21 @@ function postStairBase(kind, week){
     title:"Off — full rest day", flights:0, level:4, min:0,
     recipe:"<strong>No stairs, no lifting.</strong> Fully off. Monday's heavy legs are better for it.",
     hard:false };
+  if(kind==="p-off") return {
+    title:"Off — no gym", flights:0, level:4, min:0,
+    recipe:"<strong>No stairs, no lifting.</strong> Away from a gym today; the session is dropped, not repaid.",
+    hard:false };
+  if(kind==="p-ellip") return {
+    title:"Easy elliptical — optional", flights:0, level:4, min:25,
+    recipe:"<strong>About 25 minutes on the elliptical, easy</strong> (RPE 5 or lower), in place of the easy stairs. It has no step mechanics, so it counts as easy aerobic work, not stair volume. Use the fixed handles or let the arms hang free: don't pump the moving arms against the left shoulder. Skip it if you're still tired.",
+    hard:false };
   if(kind==="p-easy") return {
     title:"Easy — 70 flights", flights:70, level:6, min:mins(70,6),
     recipe:"<strong>70 flights at level 6</strong> (45 spm), after the lifting. Recovery, not progress: it should feel like you could do it again.",
     hard:false };
   if(kind==="p-intervals"){
     if(short) return {title:"Quality #1 — short intervals", flights:65, level:11, min:22,
-      recipe:"10 flights at <strong>L5</strong> → <strong>3 × (10 at L11 / 5 at L4)</strong> → 10 at L4. <em>65 flights — "+(week===1?"ramp":"deload")+" week, three reps.</em>",
+      recipe:"10 flights at <strong>L5</strong> → <strong>3 × (10 at L11 / 5 at L4)</strong> → 10 at L4. <em>65 flights — "+(week<=2?"ramp":"deload")+" size, three reps.</em>",
       hard:true};
     return {title:"Quality #1 — intervals", flights:95, level:11, min:31,
       recipe:"10 flights at <strong>L5</strong> → <strong>5 × (10 at L11 / 5 at L4)</strong> → 10 at L4. <em>95 flights.</em><br>"+
@@ -621,8 +648,8 @@ function postStairBase(kind, week){
     if(week===4 || week===8) return {title:"Benchmark — 100 flights at L8", flights:100, level:8, min:mins(100,8),
       recipe:"<strong>Timed: 100 flights straight at level 8.</strong> No warm-up flights beyond two minutes easy, start the clock at L8 and don't change the level. Log the time, average bpm and RPE. Compare with ~29 min (the September reference) and, in week 8, with week 4.",
       hard:true};
-    if(week===1) return {title:"Quality #2 — short tempo", flights:70, level:8, min:23,
-      recipe:"10 at <strong>L5</strong> → <strong>50 continuous at L8</strong> → 10 at L4. <em>70 flights — ramp week.</em>",
+    if(week<=2) return {title:"Quality #2 — short tempo", flights:70, level:8, min:23,
+      recipe:"10 at <strong>L5</strong> → <strong>50 continuous at L8</strong> → 10 at L4. <em>70 flights — ramp size.</em>",
       hard:true};
     return {title:"Quality #2 — tempo", flights:90, level:8, min:29,
       recipe:"10 at <strong>L5</strong> → <strong>70 continuous at L8</strong> (comfortably hard — 3–4 words of speech) → 10 at L4. <em>90 flights.</em><br>"+
@@ -866,7 +893,7 @@ function renderCountdown(){
   var today = ymd(new Date());
   if(inPost(today)){
     document.getElementById("countdown").innerHTML = postWeekOf(today) === 0
-      ? "Climbed 8 Nov · <b>off week</b> · plan starts Mon 16 Nov"
+      ? "Climbed 8 Nov · <b>off week</b> · plan starts Mon 23 Nov"
       : "Climbed 8 Nov · <b>week "+postWeekOf(today)+"</b> of 8"+(today > POST_END ? " · block complete" : "");
     return;
   }
@@ -959,13 +986,16 @@ function stairsBlock(date, e, st, num){
 function renderPostToday(root, date, e){
   var d = parse(date), wd = d.getDay(), pw = postWeekOf(date);
   var ph = pw === 0
-    ? {name:"Off week", hold:false, note:"The week of 9 Nov was called a wash. Nothing is prescribed and nothing is owed; week 1 starts Monday 16 Nov."}
+    ? {name:"Off week", hold:false, note:"The weeks of 9 and 16 Nov were called a wash. Nothing is prescribed and nothing is owed; week 1 starts Monday 23 Nov."}
     : POST_PHASES[pw-1];
   var base = pw === 0 ? POST_DAYS[0] : POST_DAYS[wd];
+  var ov = POST_OVERRIDE[date] || {}, travel = TRAVEL[date];
+  if(ov.gym === null) base = {gym:null, list:[], gymMin:0, stair:ov.stair || base.stair, liftFirst:false};
+  else if(ov.stair) base = {gym:base.gym, list:base.list, gymMin:base.gymMin, stair:ov.stair, liftFirst:base.liftFirst};
   var plan = {gym:base.gym, gymMin:base.gymMin, stair:base.stair, liftFirst:!!base.liftFirst,
     list:base.list.map(function(x){ var c={}; for(var k in x) c[k]=x[k]; c.sets=postSets(x, pw); return c; })};
   var st = stairSession(plan.stair, pw);
-  var total = SHOULDER_MIN + HLR_MIN + CALF_MIN + st.min + (plan.gym ? plan.gymMin : 0) + (wd === 6 ? YOGA_MIN_POST : 0);
+  var total = (ov.noDaily ? 0 : SHOULDER_MIN + HLR_MIN + CALF_MIN) + st.min + (plan.gym ? plan.gymMin : 0) + (wd === 6 ? YOGA_MIN_POST : 0);
 
   var head = el("div","dayhead");
   var prevBtn = el("button","daynav","‹");
@@ -980,7 +1010,7 @@ function renderPostToday(root, date, e){
   var meta = el("div","daymeta");
   meta.innerHTML = '<div class="wk">Post-climb week '+pw+' · '+esc(ph.name)+'</div><div class="ph">'+pretty(date)+'</div>';
   head.appendChild(meta);
-  if(wd !== 0 && pw !== 0){
+  if(wd !== 0 && pw !== 0 && !travel && total > 0){
     var est = el("div","est");
     est.innerHTML = '<div class="n">'+total+'</div><div class="l">min total</div>';
     head.appendChild(est);
@@ -992,9 +1022,15 @@ function renderPostToday(root, date, e){
       "<strong>Off week.</strong> "+esc(ph.note)+" If you train anyway, tell Claude what you did and it goes in the log as it happened."));
     return;
   }
+  if(travel){
+    root.appendChild(el("div","notice",
+      "<strong>Travel day: off.</strong> "+esc(travel)+" If you train anyway, tell Claude and it goes in the log as it happened."));
+    renderNotes(root, date, e);
+    return;
+  }
   if(date > POST_END){
     root.appendChild(el("div","notice warn",
-      "<strong>The 8-week block ended on Sunday 10 January.</strong> This day repeats week 8. Ask Claude for a check-in and the next block."));
+      "<strong>The 8-week block ended on Sunday 17 January.</strong> This day repeats week 8. Ask Claude for a check-in and the next block."));
   }
   if(total > 75){
     root.appendChild(el("div","notice warn",
@@ -1002,6 +1038,7 @@ function renderPostToday(root, date, e){
       finishTime(total)+". If the clock is tight, drop the two lowest accessories; keep the main lifts, the face pulls and the shoulder block."));
   }
   if(wd === 1) root.appendChild(el("div","notice", esc(ph.note)));
+  if(ov.note) root.appendChild(el("div","notice", esc(ov.note)));
   if(ph.hold && plan.gym && wd !== 0){
     root.appendChild(el("div","notice",
       "<strong>"+esc(ph.name)+" week.</strong> Same weights as last time — the app holds every load this week."));
@@ -1009,6 +1046,7 @@ function renderPostToday(root, date, e){
 
   var n = 1;
   /* ---- shoulder block, every day ---- */
+  if(!ov.noDaily){
   var sb = el("section","block");
   sb.appendChild(el("div","blockhead",'<span class="num">'+(n++)+'</span><h2>Daily block</h2><span class="sub">every day · ~'+(SHOULDER_MIN+HLR_MIN+CALF_MIN)+' min</span>'));
   sb.appendChild(el("div","notice",
@@ -1017,6 +1055,7 @@ function renderPostToday(root, date, e){
   var daily = SHOULDER_DAILY.concat([HLR_EX, CALF_DAILY]);
   for(var i=0;i<daily.length;i++) sb.appendChild(exCard(daily[i], i, date, e, false));
   root.appendChild(sb);
+  }
 
   function gymBlock(){
     var s3 = el("section","block");
@@ -1574,7 +1613,7 @@ function toast(msg){
 function renderPostPlan(root){
   var head = el("div","dayhead");
   head.innerHTML = '<div class="bigday">PLAN</div><div class="daymeta">'+
-    '<div class="wk">16 Nov 2026 → 10 Jan 2027</div><div class="ph">Post-climb · strength-led · 8 weeks</div></div>';
+    '<div class="wk">23 Nov 2026 → 17 Jan 2027</div><div class="ph">Post-climb · strength-led · 8 weeks</div></div>';
   root.appendChild(head);
 
   var cur = postWeekOf(ymd(new Date()));
@@ -1603,7 +1642,7 @@ function renderPostPlan(root){
     ["Wed","Quality #1 — intervals","Core block A"],
     ["Thu","Easy 70 at L6, after lifting","Upper B — vertical pull + landmine"],
     ["Fri","—","Lower B — hip thrust, abduction, bridge holds"],
-    ["Sat","Quality #2 — tempo (benchmark in wk 4, 8)","Core + carries, then 8 min yoga"],
+    ["Sat","Quality #2 — tempo (benchmark in wk 4, 8; wk 4's is on Fri 18 Dec)","Core + carries, then 8 min yoga"],
     ["Sun","Off","Off"]
   ];
   var h = "<thead><tr><th>Day</th><th>Stairs</th><th>Gym</th></tr></thead><tbody>";
@@ -1740,7 +1779,7 @@ function boot(){
 }
 /* Keep BUILD in step with CACHE in sw.js. The footer shows both; if they
    differ the page is stale and the new version is still on its way. */
-var BUILD = "v29";
+var BUILD = "v30";
 function showCacheVersion(){
   if(!("caches" in window)) return;
   caches.keys().then(function(keys){
