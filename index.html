@@ -588,6 +588,10 @@ var POST_OVERRIDE = {
      48 h fever-free, testing negative. Light only; the steam room comes last and stays short. */
   "2026-11-19":{session:true, gym:null, stair:"p-return", stretch:true, steam:true,
     note:"Optional return session: get moving, don't test yourself. Stop and skip the steam room on chest pain or pressure, a racing or irregular heartbeat, dizziness, or breathlessness out of proportion to the pace. Tomorrow morning is the real test: same or better, you can repeat this Fri or Sat; worse or more drained, rest until Monday."},
+  "2026-11-20":{session:true, gym:null, stair:"p-return", stretch:true, steam:true,
+    note:"Repeat of Thursday — only if this morning you feel the same or better than yesterday. Worse or more drained: rest, and the plan picks up Monday. Same session, no extra minutes. Same stop signs: chest pain or pressure, a racing or irregular heartbeat, dizziness, or breathlessness out of proportion to the pace — stop and skip the steam room."},
+  "2026-11-21":{session:true, gym:null, stair:"p-return", stretch:true, steam:true,
+    note:"Repeat of Thursday — only if this morning you feel the same or better than yesterday. Worse or more drained: rest, and the plan picks up Monday. Same session, no extra minutes: Monday's Lower A is the next step up. Same stop signs: chest pain or pressure, a racing or irregular heartbeat, dizziness, or breathlessness out of proportion to the pace — stop and skip the steam room."},
   "2026-11-26":{gym:null, stair:"p-ellip", noDaily:true, note:"Thanksgiving in Malvern: no gym. An easy elliptical session is optional. Upper B is dropped, not repaid."},
   "2026-11-27":{gym:null, stair:"p-off",   noDaily:true, note:"Malvern, no gym. Lower B is dropped, not repaid."},
   "2026-12-18":{gym:null, stair:"p-tempo", note:"Benchmark day, moved here from Saturday (the Ames drive). Use the home StairMaster so it compares with the 20 Sep reference. Lower B is dropped this deload week."},
@@ -1877,7 +1881,7 @@ function boot(){
 }
 /* Keep BUILD in step with CACHE in sw.js. The footer shows both; if they
    differ the page is stale and the new version is still on its way. */
-var BUILD = "v33";
+var BUILD = "v34";
 function showCacheVersion(){
   if(!("caches" in window)) return;
   caches.keys().then(function(keys){
