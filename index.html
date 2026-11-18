@@ -304,6 +304,7 @@ var V = {
   fc:"https://www.youtube.com/watch?v=lLAw6fUccKA",  db:"https://www.youtube.com/watch?v=bxn9FBrt4-A",
   bpa:"https://www.youtube.com/watch?v=D-3bRfprMGI", ber:"https://www.youtube.com/watch?v=4HqMXMn3FBk",
   pec:"https://www.youtube.com/watch?v=hZ0CGRaKwbQ",
+  bss:"https://www.youtube.com/watch?v=Tu9PRGacsKg", ck:"https://www.youtube.com/watch?v=5jJNfIlKTmg",   // oembed-checked 2026-11-18
   yoga:"https://www.youtube.com/watch?v=LNOucekw2co", yogas:"https://www.youtube.com/watch?v=vhLbp8ibmEE"
 };
 
@@ -391,6 +392,20 @@ var UPPER_B_P = [
   ex("rp","Rope pushdown",2,"12–15","Cable — not dips","Elbows locked to your sides.",V.rp),
   ex("fp2","Face pull",3,"15–20","Cable","Same as Tuesday. Every upper day.",V.fp)
 ];
+/* Glute emphasis from post week 2 (Beck, 2026-11-18: shape added as a goal).
+   Lower A: leg press 4 -> 3, add Bulgarian split squat and hip abduction, glute-biased
+   back extension. Lower B: kickback replaces the moderate leg press. */
+var LOWER_A_G = [
+  P(ex("lp","Leg press",3,"6–8","Heavy, controlled. Not to failure.","Knees track over toes. Never lock them out, lower back flat at the bottom.",V.lp),
+    {why:"The main quad lift. Down to three sets from week 2 to make room for the split squat."}),
+  LOWER_A[1],
+  P(ex("bss","Bulgarian split squat",3,"8–10 / side","Rear foot on a bench, a long step forward. Bodyweight or light dumbbells; start light while the pattern is new.","Lean the torso slightly forward, keep the front shin fairly vertical, and sink straight down until the glute stretches. Drive up through the whole front foot.",V.bss,
+       "New exercise: learn the pattern before adding load. Ease off if the front knee or the back of the thigh complains."),
+    {why:"Loads the glutes in their stretched position with little hamstring load — the job an RDL would do, without the hamstring risk."}),
+  P(ex("be","45° back extension",3,"8–12","Glute bias: feet turned out, pad just below the hip crease. Hold a plate once bodyweight is easy.","Upper back slightly rounded, chin tucked. Squeeze the glutes to come up; stop at a straight line, don't arch the lower back.",V.be),
+    {why:"Same lift, set up so the glutes rather than the lower back do the work."}),
+  ex("ha","Hip abduction",2,"15","Machine","Lean the torso 10–15° forward — that shifts load to glute medius, the upper and side glute.",V.ha)
+];
 var LOWER_B = [
   P(ex("ht","Hip thrust / glute drive",4,"6–10","Machine","Ribs down, chin tucked. Squeeze at the top, don't arch.",V.ht),
     {why:"The main glute lift: glutes drive every step up, so this is where lower-body strength pays off most on the stairs."}),
@@ -400,6 +415,11 @@ var LOWER_B = [
   P(ex("lpB","Leg press, moderate",2,"10–12","Moderate — nowhere near a hard set. Saturday is tempo.","Knees track over toes. Never lock them out.",V.lp,
        "Keep this light. It is the day before the tempo climb."),
     {why:"A light second dose of leg work that keeps the quads trained without costing Saturday's tempo."})
+];
+var LOWER_B_G = [
+  LOWER_B[0], LOWER_B[1], LOWER_B[2],
+  P(ex("ck","Cable kickback",2,"12–15 / side","Ankle cuff on a low cable. Hold the frame and lean slightly forward.","Brace, keep the hips square, and kick back and slightly out by squeezing the glute. Stop before the lower back arches.",V.ck),
+    {why:"Direct glute work that doesn't tire the quads the day before Saturday's tempo."})
 ];
 var CORE_A = [
   ex("db","Dead bug",3,"10 / side","Floor","Ribs down, low back flat. Slow.",V.db),
@@ -633,7 +653,7 @@ function postStairBase(kind, week){
     hard:false };
   if(kind==="p-easy") return {
     title:"Easy — 70 flights", flights:70, level:6, min:mins(70,6),
-    recipe:"<strong>70 flights at level 6</strong> (45 spm), after the lifting. Recovery, not progress: it should feel like you could do it again.",
+    recipe:"<strong>70 flights at level 6</strong> (45 spm), after the lifting. Recovery, not progress: it should feel like you could do it again. <strong>Glute cue:</strong> stand tall, hands off the rails, and push through the whole foot until the hip is fully straight.",
     hard:false };
   if(kind==="p-intervals"){
     if(short) return {title:"Quality #1 — short intervals", flights:65, level:11, min:22,
@@ -989,6 +1009,8 @@ function renderPostToday(root, date, e){
     ? {name:"Off week", hold:false, note:"The weeks of 9 and 16 Nov were called a wash. Nothing is prescribed and nothing is owed; week 1 starts Monday 23 Nov."}
     : POST_PHASES[pw-1];
   var base = pw === 0 ? POST_DAYS[0] : POST_DAYS[wd];
+  if(pw >= 2 && wd === 1) base = {gym:"Lower A — strength + glutes", list:LOWER_A_G, gymMin:69, stair:base.stair, liftFirst:base.liftFirst};
+  if(pw >= 2 && wd === 5) base = {gym:base.gym, list:LOWER_B_G, gymMin:base.gymMin, stair:base.stair, liftFirst:base.liftFirst};
   var ov = POST_OVERRIDE[date] || {}, travel = TRAVEL[date];
   if(ov.gym === null) base = {gym:null, list:[], gymMin:0, stair:ov.stair || base.stair, liftFirst:false};
   else if(ov.stair) base = {gym:base.gym, list:base.list, gymMin:base.gymMin, stair:ov.stair, liftFirst:base.liftFirst};
@@ -1544,7 +1566,7 @@ function renderLog(){
 function allExercises(){
   /* Post-block lists first, so where an id is shared the original name wins
      for old entries; new ids get their new names. */
-  var all = {}, lists=[LOWER_A,UPPER_A_P,UPPER_B_P,LOWER_B,CORE_A,CORE_B,SHOULDER_DAILY,[HLR_EX],
+  var all = {}, lists=[LOWER_A,LOWER_A_G,UPPER_A_P,UPPER_B_P,LOWER_B,LOWER_B_G,CORE_A,CORE_B,SHOULDER_DAILY,[HLR_EX],
                        WARM_UP,UPPER_A,LOWER,UPPER_B,FULL,CORE,[CALF_EX,YOGA_EX]];
   for(var i=0;i<lists.length;i++) for(var j=0;j<lists[i].length;j++) all[lists[i][j].id]=lists[i][j];
   all.fly = all.fly || {id:"fly", n:"Cable fly"};          // retired 2026-10-05; old entries still export by name
@@ -1637,11 +1659,11 @@ function renderPostPlan(root){
   var sc2 = el("div","scroller");
   var t2 = el("table","ptable");
   var rows = [
-    ["Mon","—","Lower A — leg press, machine squat, back extension"],
+    ["Mon","—","Lower A — leg press, machine squat, Bulgarian split squat, back extension, hip abduction (split squat and abduction from wk 2)"],
     ["Tue","Easy 70 at L6, after lifting","Upper A — horizontal push/pull"],
     ["Wed","Quality #1 — intervals","Core block A"],
     ["Thu","Easy 70 at L6, after lifting","Upper B — vertical pull + landmine"],
-    ["Fri","—","Lower B — hip thrust, abduction, bridge holds"],
+    ["Fri","—","Lower B — hip thrust, abduction, bridge holds, cable kickback (from wk 2)"],
     ["Sat","Quality #2 — tempo (benchmark in wk 4, 8; wk 4's is on Fri 18 Dec)","Core + carries, then 8 min yoga"],
     ["Sun","Off","Off"]
   ];
@@ -1779,7 +1801,7 @@ function boot(){
 }
 /* Keep BUILD in step with CACHE in sw.js. The footer shows both; if they
    differ the page is stale and the new version is still on its way. */
-var BUILD = "v30";
+var BUILD = "v31";
 function showCacheVersion(){
   if(!("caches" in window)) return;
   caches.keys().then(function(keys){
