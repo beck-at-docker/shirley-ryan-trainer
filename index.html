@@ -222,6 +222,9 @@ pre.export{background:var(--sunk);border:1px solid var(--line);border-radius:8px
   font-weight:500;z-index:50;box-shadow:0 6px 24px rgba(0,0,0,.28)}
 .foot{margin-top:30px;padding-top:16px;border-top:1px solid var(--line);
   font-family:var(--mono);font-size:11px;color:var(--ink-3);line-height:1.7}
+.shrow{align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px}
+.shrow .shl{font-size:12px;color:var(--ink-2);margin-right:2px}
+.shrow .btn.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 </style>
 
 </head>
@@ -308,6 +311,7 @@ var V = {
   hfs:"https://www.youtube.com/watch?v=fnQbF1AVshM", sqs:"https://www.youtube.com/watch?v=uRRwljV-Nlk",   // stretches, oembed-checked 2026-11-18
   f4s:"https://www.youtube.com/watch?v=-g0nuyTHMrI", cls:"https://www.youtube.com/watch?v=TXVLJ3WH8Zg",
   cps:"https://www.youtube.com/watch?v=eqVMAPM00DM",
+  clr:"https://www.youtube.com/watch?v=qitQHqNZbeM", clrs:"https://www.youtube.com/watch?v=4CCt1A8x9Ag",   // lateral raise, oembed-checked 2026-11-18
   yoga:"https://www.youtube.com/watch?v=LNOucekw2co", yogas:"https://www.youtube.com/watch?v=vhLbp8ibmEE"
 };
 
@@ -424,6 +428,17 @@ var LOWER_B_G = [
   P(ex("ck","Cable kickback",2,"12–15 / side","Ankle cuff on a low cable. Hold the frame and lean slightly forward.","Brace, keep the hips square, and kick back and slightly out by squeezing the glute. Stop before the lower back arches.",V.ck),
     {why:"Direct glute work that doesn't tire the quads the day before Saturday's tempo."})
 ];
+/* Hamstring step from post week 7 (Beck, 2026-11-18): long-lever single-leg bridge hold, gated on
+   the last three logged Friday holds being quiet (12/4, 12/11, 1/1 — travel removed 11/27, 12/18
+   and 12/25). Bridge walk-outs wait for the next block. */
+var LOWER_B_G7 = LOWER_B_G.map(function(x){
+  if(x.id !== "bh") return x;
+  return P(ex("bh","Single-leg bridge hold — long lever (gated)",3,"30–45 s / side",
+    "Floor, one foot flat with the heel about a foot further from the hips than before, other leg up. Hips level.",
+    "Same hold, longer lever: press the heel down and hold a straight line from knee to shoulder. About 5/10, hamstring working, never tugging. Rest 45 s. Note which side feels different.",null,
+    "Only if your last three logged holds (Fri 4 Dec, 11 Dec, 1 Jan) were all quiet the next day. If not, or if this one tugs, go back to the usual heel position. No curls, still."),
+    {why:"Hamstrings that only ever hold short get no stronger at length, which is where the old tears are. A longer lever loads them a little more, still without a curl."});
+});
 var CORE_A = [
   ex("db","Dead bug",3,"10 / side","Floor","Ribs down, low back flat. Slow.",V.db),
   ex("sp","Side plank",3,"30–45 s / side","Floor","Hips stacked, don't sag.",null)
@@ -481,6 +496,20 @@ var STEAM_EX = BW(ex("stm","Steam room",1,"5–8 min","After the session, never 
   "Sit, don't lie down, and stand up slowly. Leave straight away if you feel dizzy, lightheaded or nauseous, your heart pounds, or a headache or fog starts.",null,
   "Short on purpose: just off an illness, probably a little dehydrated, and on the 3 AM Adderall — heat and a stimulant push heart rate the same way."));
 var STEAM_MIN = 8;
+
+/* Lateral raise from post week 2, Tue (Upper A) and Wed (Core A) (Beck, 2026-11-18): side-delt
+   width frames the waist. Light, below shoulder height, scapular plane; shoulder gate applies. */
+var LAT_RAISE = P(ex("clr","Cable lateral raise",2,"12–15","Low cable, one arm at a time, D-handle. Light dumbbells if the cable is taken.",
+  "Raise about 30° forward of straight out to the side, thumb slightly up, to just below shoulder height. Lower slowly over 2–3 seconds.",V.clr,
+  "Very light: the side shoulder tires fast. Never above shoulder height, whatever the video does. Stop on any pinch. Scapular-plane explainer: "+V.clrs),
+  {why:"Wider shoulders make the waist look narrower. Kept light, low and in the scapular plane for the torn cuff."});
+
+/* Shoulder gate, one tap (Beck, 2026-11-18). These lifts only progress after a "clean" mark on
+   the last session; twinge, pain or no mark holds the weight. */
+var GATE = {mcp:1, pec:1, lmp:1, clr:1};
+
+/* Waist and hip measurements: baseline, Wk 4, Wk 8 (Beck, 2026-11-18). Stay on the phone. */
+var MEAS_DATES = {"2026-11-23":"Baseline", "2026-12-14":"Week 4", "2027-01-11":"Week 8"};
 var YOGA_SUN_EX = BW(ex("yogs","Yoga — Heart And Hips (optional)",1,"8–26 min","Mat, quiet space","Optional, gentle. The full 26-minute Heart And Hips practice, or the 8-minute post-run session if time is short. Sunday stays a rest day.",V.yoga,
   "If downward dog comes up, put your hands on a bench or swap in child's pose. No chaturanga, no binds behind the back."));
 
@@ -843,7 +872,10 @@ function entry(date){
 }
 function hasContent(e){
   if(!e) return false;
-  if(e.notes || e.protein) return true;
+  if(e.notes || e.protein || e.rhr) return true;
+  if(e.shoulder && Object.keys(e.shoulder).length) return true;
+  if(e.meas && (e.meas.waist || e.meas.hips)) return true;
+  if(e.checkin && (e.checkin.energy || e.checkin.sleep || e.checkin.easy || e.checkin.notes)) return true;
   if(e.stairs && (e.stairs.flights||e.stairs.level||e.stairs.min||e.stairs.rpe||e.stairs.bpm||e.stairs.notes)) return true;
   for(var k in e.gym){ var arr=e.gym[k]; for(var i=0;i<arr.length;i++){ if(arr[i]&&(arr[i].w||arr[i].r)) return true; } }
   return false;
@@ -884,6 +916,19 @@ var RESETS = {
    range; then add one step. Weeks 6 and 7 never add — the block holds
    load through peak and taper. */
 function suggestLoad(x, date, week, holdWhy){
+  var sg = suggestLoadBase(x, date, week, holdWhy);
+  if(!GATE[x.id] || !sg.from || (sg.kind !== "up" && sg.kind !== "top")) return sg;
+  var mark = log[sg.from] && log[sg.from].shoulder && log[sg.from].shoulder[x.id];
+  if(mark === "clean") return sg;
+  var why = "Shoulder gate: last time's shoulder mark was "+(mark ? "\u201c"+mark+"\u201d" : "missing")+
+            ", so repeat last time's weights. Tap Clean below if today stays clean.";
+  var prev = log[sg.from].gym[x.id].filter(function(p){ return p && p.w; }).map(function(p){ return parseFloat(p.w); });
+  var hi = Math.max.apply(null, prev), lo = Math.min.apply(null, prev);
+  if(hi === lo) return {kind:"hold", weight:hi, from:sg.from, top:sg.top, why:why};
+  var nHi = prev.filter(function(v){ return v === hi; }).length;
+  return {kind:"top", weight:hi, hold:lo, topSets:Math.min(nHi, x.sets), from:sg.from, top:sg.top, why:why};
+}
+function suggestLoadBase(x, date, week, holdWhy){
   var top = topReps(x.reps);
   if(x.bw) return {kind:"first", top:top};          // bodyweight / band work: no load to suggest
   var prev = lastLoggedFor(x.id, date);
@@ -1052,7 +1097,9 @@ function renderPostToday(root, date, e){
     : POST_PHASES[pw-1];
   var base = pw === 0 ? POST_DAYS[0] : POST_DAYS[wd];
   if(pw >= 2 && wd === 1) base = {gym:"Lower A — strength + glutes", list:LOWER_A_G, gymMin:69, stair:base.stair, liftFirst:base.liftFirst};
-  if(pw >= 2 && wd === 5) base = {gym:base.gym, list:LOWER_B_G, gymMin:base.gymMin, stair:base.stair, liftFirst:base.liftFirst};
+  if(pw >= 2 && wd === 5) base = {gym:base.gym, list:(pw >= 7 ? LOWER_B_G7 : LOWER_B_G), gymMin:base.gymMin, stair:base.stair, liftFirst:base.liftFirst};
+  if(pw >= 2 && wd === 2) base = {gym:base.gym, list:base.list.concat([LAT_RAISE]), gymMin:base.gymMin+4, stair:base.stair, liftFirst:base.liftFirst};
+  if(pw >= 2 && wd === 3) base = {gym:"Core block A + lateral raise", list:base.list.concat([LAT_RAISE]), gymMin:base.gymMin+4, stair:base.stair, liftFirst:base.liftFirst};
   var ov = POST_OVERRIDE[date] || {}, travel = TRAVEL[date];
   if(ov.session) ph = {name:"Optional return session", hold:false, note:ov.note};
   if(ov.gym === null) base = {gym:null, list:[], gymMin:0, stair:ov.stair || base.stair, liftFirst:false};
@@ -1105,6 +1152,16 @@ function renderPostToday(root, date, e){
     root.appendChild(el("div","notice warn",
       "<strong>Long one — about "+total+" minutes.</strong> From a 4:00 start that finishes around "+
       finishTime(total)+". If the clock is tight, drop the two lowest accessories; keep the main lifts, the face pulls and the shoulder block."));
+  }
+  if(wd === 1 && pw >= 2){
+    var sun = parse(date); sun.setDate(sun.getDate()-1); var sunD = ymd(sun);
+    var ci = log[sunD] && log[sunD].checkin;
+    if(!ci || !(ci.energy || ci.sleep || ci.easy || ci.notes)){
+      var nag = el("div","notice warn","<strong>Yesterday's weekly check-in isn't done.</strong> Two minutes: fill it in, back up the log, and paste it to Claude with \u201cweekly check-in\u201d. ");
+      var go = el("button","btn ghost","Open Sunday's check-in"); go.type = "button";
+      go.onclick = function(){ shiftDay(-1); };
+      nag.appendChild(go); root.appendChild(nag);
+    }
   }
   if(wd === 1) root.appendChild(el("div","notice", esc(ph.note)));
   if(ov.note) root.appendChild(el("div","notice", esc(ov.note)));
@@ -1161,6 +1218,42 @@ function renderPostToday(root, date, e){
     ss.appendChild(el("div","notice","<strong>Stretching.</strong> "+esc(STRETCH_RULE)+" Nothing behind the torso line for the shoulder; no long forward folds for the hamstrings."));
     for(var q=0;q<stretchList.length;q++) ss.appendChild(exCard(stretchList[q], q, date, e, false));
     root.appendChild(ss);
+  }
+
+  /* ---- measurements: baseline, Wk 4, Wk 8 ---- */
+  if(MEAS_DATES[date]){
+    var ms = el("section","block");
+    ms.appendChild(el("div","blockhead",'<span class="num">'+(n++)+'</span><h2>Measurements</h2><span class="sub">'+MEAS_DATES[date]+' · 2 min</span>'));
+    ms.appendChild(el("div","notice","Before training, before eating. Tape level and snug, not tight; relaxed, after a normal breath out. <strong>Waist</strong> at the navel; <strong>hips</strong> at the widest point of the glutes. Measure twice, log the average. Photos are optional: same light, same pose, kept in your phone's photos, not here."));
+    var mr = el("div","row2"), me = e.meas || {};
+    mr.appendChild(numField("Waist (in)","m-waist", me.waist, function(v){ var en = entry(date); if(!en.meas) en.meas = {}; en.meas.waist = v; persist(); }));
+    mr.appendChild(numField("Hips (in)","m-hips", me.hips, function(v){ var en = entry(date); if(!en.meas) en.meas = {}; en.meas.hips = v; persist(); }));
+    ms.appendChild(mr);
+    root.appendChild(ms);
+  }
+
+  /* ---- weekly check-in, Sundays ---- */
+  if(wd === 0 && pw >= 1){
+    var cs = el("section","block");
+    cs.appendChild(el("div","blockhead",'<span class="num">'+(n++)+'</span><h2>Weekly check-in</h2><span class="sub">~2 min</span>'));
+    var logged = 0;
+    for(var k=1;k<=6;k++){ var dd = parse(date); dd.setDate(dd.getDate()-7+k); if(hasContent(log[ymd(dd)])) logged++; }
+    cs.appendChild(el("div","notice","This week: <strong>"+logged+" of 6</strong> training days have something logged. Fill this in, tap <strong>Back up the log</strong> below, and paste it to Claude with \u201cweekly check-in\u201d. Claude reviews the week and proposes one change."));
+    var ce = e.checkin || {};
+    function setCI(key){ return function(v){ var en = entry(date); if(!en.checkin) en.checkin = {}; en.checkin[key] = v; persist(); }; }
+    var c1 = el("div","row2");
+    c1.appendChild(numField("Energy this week (1–10)","ci-energy", ce.energy, setCI("energy")));
+    c1.appendChild(numField("Sleep, typical night (h)","ci-sleep", ce.sleep, setCI("sleep")));
+    cs.appendChild(c1);
+    var c2 = el("div","row2");
+    c2.appendChild(numField("Easy days, typical RPE","ci-easy", ce.easy, setCI("easy")));
+    cs.appendChild(c2);
+    var cf = el("label","field");
+    cf.innerHTML = '<span>What went well, what didn\'t, anything sore or off</span>';
+    var cta = document.createElement("textarea"); cta.rows = 3; cta.id = "ci-notes"; cta.value = ce.notes || "";
+    cta.addEventListener("input", function(){ setCI("notes")(cta.value); });
+    cf.appendChild(cta); cs.appendChild(cf);
+    root.appendChild(cs);
   }
 
   /* ---- steam room (return session only) ---- */
@@ -1501,6 +1594,27 @@ function exCard(x, idx, date, e, isWarm){
       body.appendChild(fill);
     }
 
+    if(GATE[x.id]){
+      var sh = el("div","btnrow shrow");
+      sh.appendChild(el("span","shl","Shoulder:"));
+      ["clean","twinge","pain"].forEach(function(v){
+        var cur = (entry(date).shoulder||{})[x.id];
+        var b = el("button","btn ghost"+(cur===v?" on":""), v.charAt(0).toUpperCase()+v.slice(1));
+        b.type = "button";
+        b.onclick = function(){
+          var en = entry(date); if(!en.shoulder) en.shoulder = {};
+          en.shoulder[x.id] = v; persist();
+          [].forEach.call(sh.querySelectorAll("button"), function(bb){ bb.classList.remove("on"); });
+          b.classList.add("on");
+          toast(v==="clean" ? "Clean — this lift can progress next time"
+              : v==="twinge" ? "Twinge — the weight holds next time"
+              : "Pain — end this exercise today");
+        };
+        sh.appendChild(b);
+      });
+      body.appendChild(sh);
+    }
+
     var prev = lastLoggedFor(x.id, date);
     if(prev){
       var bits = prev.sets.filter(function(p){return p&&p.w;})
@@ -1599,6 +1713,11 @@ function renderNotes(root, date, e){
   ta.rows = 3; ta.id="notes"; ta.value = e.notes||"";
   ta.addEventListener("input", function(){ entry(date).notes = ta.value; persist(); });
   nf.appendChild(ta); s.appendChild(nf);
+  if(inPost(date)){
+    var rr = el("div","row2");
+    rr.appendChild(numField("Resting HR on waking, before you get up (bpm)","rhr", e.rhr, function(v){ entry(date).rhr = v; persist(); }));
+    s.appendChild(rr);
+  }
 
   s.appendChild(backupNag());
 
@@ -1645,7 +1764,7 @@ function renderLog(){
 function allExercises(){
   /* Post-block lists first, so where an id is shared the original name wins
      for old entries; new ids get their new names. */
-  var all = {}, lists=[LOWER_A,LOWER_A_G,UPPER_A_P,UPPER_B_P,LOWER_B,LOWER_B_G,STRETCH_WED,STRETCH_FRI,WARMUP_LOWER,[YOGA_SUN_EX,STEAM_EX],CORE_A,CORE_B,SHOULDER_DAILY,[HLR_EX],
+  var all = {}, lists=[LOWER_A,LOWER_A_G,UPPER_A_P,UPPER_B_P,LOWER_B,LOWER_B_G,STRETCH_WED,STRETCH_FRI,WARMUP_LOWER,[YOGA_SUN_EX,STEAM_EX,LAT_RAISE],LOWER_B_G7,CORE_A,CORE_B,SHOULDER_DAILY,[HLR_EX],
                        WARM_UP,UPPER_A,LOWER,UPPER_B,FULL,CORE,[CALF_EX,YOGA_EX]];
   for(var i=0;i<lists.length;i++) for(var j=0;j<lists[i].length;j++) all[lists[i][j].id]=lists[i][j];
   all.fly = all.fly || {id:"fly", n:"Cable fly"};          // retired 2026-10-05; old entries still export by name
@@ -1670,6 +1789,21 @@ function summarise(date, e){
       if(arr[i] && (arr[i].w || arr[i].r)) parts.push((arr[i].w||(all[id] && all[id].bw ? "BW" : "?"))+"×"+(arr[i].r||"?"));
     }
     if(parts.length) out.push((all[id] ? all[id].n : id)+": "+parts.join("  "));
+  }
+  if(e.shoulder){
+    var sb = [];
+    for(var sid in e.shoulder) sb.push((all[sid] ? all[sid].n : sid)+" "+e.shoulder[sid]);
+    if(sb.length) out.push("Shoulder: "+sb.join(" · "));
+  }
+  if(e.rhr) out.push("Resting HR on waking: "+e.rhr+" bpm");
+  if(e.meas && (e.meas.waist || e.meas.hips))
+    out.push("Measurements: waist "+(e.meas.waist||"?")+" in · hips "+(e.meas.hips||"?")+" in");
+  if(e.checkin){
+    var c = e.checkin, cb = [];
+    if(c.energy) cb.push("energy "+c.energy+"/10");
+    if(c.sleep) cb.push("sleep ~"+c.sleep+" h");
+    if(c.easy) cb.push("easy-day RPE ~"+c.easy);
+    if(cb.length || c.notes) out.push("Weekly check-in: "+cb.join(" · ")+(c.notes ? (cb.length?" — ":"")+c.notes : ""));
   }
   if(e.protein) out.push("Protein: "+e.protein+" g");
   if(e.notes) out.push("Notes: "+e.notes);
@@ -1739,12 +1873,12 @@ function renderPostPlan(root){
   var t2 = el("table","ptable");
   var rows = [
     ["Mon","—","Lower A — leg press, machine squat, Bulgarian split squat, back extension, hip abduction (split squat and abduction from wk 2)"],
-    ["Tue","Easy 70 at L6, after lifting","Upper A — horizontal push/pull"],
-    ["Wed","Quality #1 — intervals","Core block A"],
+    ["Tue","Easy 70 at L6, after lifting","Upper A — horizontal push/pull (+ lateral raise from wk 2)"],
+    ["Wed","Quality #1 — intervals","Core block A (+ lateral raise from wk 2), then stretch"],
     ["Thu","Easy 70 at L6, after lifting","Upper B — vertical pull + landmine"],
     ["Fri","—","Lower B — hip thrust, abduction, bridge holds, cable kickback (from wk 2)"],
     ["Sat","Quality #2 — tempo (benchmark in wk 4, 8; wk 4's is on Fri 18 Dec)","Core + carries, then 8 min yoga"],
-    ["Sun","Off","Off (optional gentle yoga)"]
+    ["Sun","Off","Off (optional gentle yoga) · weekly check-in"]
   ];
   var h = "<thead><tr><th>Day</th><th>Stairs</th><th>Gym</th></tr></thead><tbody>";
   for(var j=0;j<rows.length;j++) h += '<tr><td class="wk">'+rows[j][0]+'</td><td>'+rows[j][1]+'</td><td>'+rows[j][2]+'</td></tr>';
@@ -1881,7 +2015,7 @@ function boot(){
 }
 /* Keep BUILD in step with CACHE in sw.js. The footer shows both; if they
    differ the page is stale and the new version is still on its way. */
-var BUILD = "v34";
+var BUILD = "v35";
 function showCacheVersion(){
   if(!("caches" in window)) return;
   caches.keys().then(function(keys){
