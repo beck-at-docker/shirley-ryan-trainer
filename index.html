@@ -477,6 +477,10 @@ var WARMUP_LOWER = [
   BW(ex("wss","Bodyweight split squat",1,"5 / side","Floor, no bench","Slow and shallow to start, deeper by the last rep.",null))
 ];
 var WARMUP_LOWER_MIN = 4;
+var STEAM_EX = BW(ex("stm","Steam room",1,"5–8 min","After the session, never before. Water before you go in and after.",
+  "Sit, don't lie down, and stand up slowly. Leave straight away if you feel dizzy, lightheaded or nauseous, your heart pounds, or a headache or fog starts.",null,
+  "Short on purpose: just off an illness, probably a little dehydrated, and on the 3 AM Adderall — heat and a stimulant push heart rate the same way."));
+var STEAM_MIN = 8;
 var YOGA_SUN_EX = BW(ex("yogs","Yoga — Heart And Hips (optional)",1,"8–26 min","Mat, quiet space","Optional, gentle. The full 26-minute Heart And Hips practice, or the 8-minute post-run session if time is short. Sunday stays a rest day.",V.yoga,
   "If downward dog comes up, put your hands on a bench or swap in child's pose. No chaturanga, no binds behind the back."));
 
@@ -580,6 +584,10 @@ var TRAVEL = {
   "2026-12-31":"Flight home (WN 1070, BWI 1:35 PM ET). Upper B and the easy stairs are dropped, not repaid."
 };
 var POST_OVERRIDE = {
+  /* Optional return session in the off week, after covid (Beck, 2026-11-18): stuffy nose only,
+     48 h fever-free, testing negative. Light only; the steam room comes last and stays short. */
+  "2026-11-19":{session:true, gym:null, stair:"p-return", stretch:true, steam:true,
+    note:"Optional return session: get moving, don't test yourself. Stop and skip the steam room on chest pain or pressure, a racing or irregular heartbeat, dizziness, or breathlessness out of proportion to the pace. Tomorrow morning is the real test: same or better, you can repeat this Fri or Sat; worse or more drained, rest until Monday."},
   "2026-11-26":{gym:null, stair:"p-ellip", noDaily:true, note:"Thanksgiving in Malvern: no gym. An easy elliptical session is optional. Upper B is dropped, not repaid."},
   "2026-11-27":{gym:null, stair:"p-off",   noDaily:true, note:"Malvern, no gym. Lower B is dropped, not repaid."},
   "2026-12-18":{gym:null, stair:"p-tempo", note:"Benchmark day, moved here from Saturday (the Ames drive). Use the home StairMaster so it compares with the 20 Sep reference. Lower B is dropped this deload week."},
@@ -640,6 +648,7 @@ function stairKindFor(wd, week){
    2026-10-13. RPE is the primary signal; bpm is the cross-check. */
 function rpeTarget(kind, week){
   if(kind==="p-easy" || kind==="p-ellip") return "5 or lower";
+  if(kind==="p-return") return "3–4";
   if(kind==="p-intervals") return "8 or lower on the L11 pushes, 4 or less on the L4 recoveries";
   if(kind==="p-tempo") return week===4 || week===8 ? "as hard as you can hold for 100 flights" : "about 7 — comfortably hard, 3–4 words of speech";
   if(kind==="easy") return "5–6";
@@ -667,6 +676,10 @@ function postStairBase(kind, week){
   if(kind==="p-rest") return {
     title:"Off — full rest day", flights:0, level:4, min:0,
     recipe:"<strong>No stairs, no lifting.</strong> Fully off. Monday's heavy legs are better for it.",
+    hard:false };
+  if(kind==="p-return") return {
+    title:"Easy return — 20 minutes", flights:50, level:5, min:20,
+    recipe:"<strong>20 minutes at level 4–5</strong> (about 50 flights at L5). A pace where you can talk in full sentences. <strong>Stop at 20 even if you feel good.</strong> Judge it by RPE and talking, not heart rate: covid and Adderall both push the number up.",
     hard:false };
   if(kind==="p-off") return {
     title:"Off — no gym", flights:0, level:4, min:0,
@@ -1037,15 +1050,17 @@ function renderPostToday(root, date, e){
   if(pw >= 2 && wd === 1) base = {gym:"Lower A — strength + glutes", list:LOWER_A_G, gymMin:69, stair:base.stair, liftFirst:base.liftFirst};
   if(pw >= 2 && wd === 5) base = {gym:base.gym, list:LOWER_B_G, gymMin:base.gymMin, stair:base.stair, liftFirst:base.liftFirst};
   var ov = POST_OVERRIDE[date] || {}, travel = TRAVEL[date];
+  if(ov.session) ph = {name:"Optional return session", hold:false, note:ov.note};
   if(ov.gym === null) base = {gym:null, list:[], gymMin:0, stair:ov.stair || base.stair, liftFirst:false};
   else if(ov.stair) base = {gym:base.gym, list:base.list, gymMin:base.gymMin, stair:ov.stair, liftFirst:base.liftFirst};
   var plan = {gym:base.gym, gymMin:base.gymMin, stair:base.stair, liftFirst:!!base.liftFirst,
     list:base.list.map(function(x){ var c={}; for(var k in x) c[k]=x[k]; c.sets=postSets(x, pw); return c; })};
   var st = stairSession(plan.stair, pw);
   var lowerDay = !!plan.gym && (wd === 1 || wd === 5);
-  var stretchList = wd === 3 ? STRETCH_WED : wd === 6 ? STRETCH_SAT : (wd === 5 && plan.gym) ? STRETCH_FRI : null;
+  var stretchList = ov.stretch ? STRETCH_WED : wd === 3 ? STRETCH_WED : wd === 6 ? STRETCH_SAT : (wd === 5 && plan.gym) ? STRETCH_FRI : null;
+  var stretchMin = stretchList === STRETCH_WED ? STRETCH_MIN[3] : stretchList === STRETCH_SAT ? STRETCH_MIN[6] : stretchList ? STRETCH_MIN[5] : 0;
   var total = (ov.noDaily ? 0 : SHOULDER_MIN + HLR_MIN + CALF_MIN) + st.min + (plan.gym ? plan.gymMin : 0) + (wd === 6 ? YOGA_MIN_POST : 0)
-            + (lowerDay ? WARMUP_LOWER_MIN : 0) + (stretchList ? STRETCH_MIN[wd] : 0);
+            + (lowerDay ? WARMUP_LOWER_MIN : 0) + stretchMin + (ov.steam ? STEAM_MIN : 0);
 
   var head = el("div","dayhead");
   var prevBtn = el("button","daynav","‹");
@@ -1060,14 +1075,14 @@ function renderPostToday(root, date, e){
   var meta = el("div","daymeta");
   meta.innerHTML = '<div class="wk">Post-climb week '+pw+' · '+esc(ph.name)+'</div><div class="ph">'+pretty(date)+'</div>';
   head.appendChild(meta);
-  if(wd !== 0 && pw !== 0 && !travel && total > 0){
+  if(wd !== 0 && (pw !== 0 || ov.session) && !travel && total > 0){
     var est = el("div","est");
     est.innerHTML = '<div class="n">'+total+'</div><div class="l">min total</div>';
     head.appendChild(est);
   }
   root.appendChild(head);
 
-  if(pw === 0){
+  if(pw === 0 && !ov.session){
     root.appendChild(el("div","notice",
       "<strong>Off week.</strong> "+esc(ph.note)+" If you train anyway, tell Claude what you did and it goes in the log as it happened."));
     return;
@@ -1138,10 +1153,18 @@ function renderPostToday(root, date, e){
   /* ---- gentle stretching: Wed after core, Fri after Lower B, Sat before yoga ---- */
   if(stretchList){
     var ss = el("section","block");
-    ss.appendChild(el("div","blockhead",'<span class="num">'+(n++)+'</span><h2>Stretch</h2><span class="sub">~'+STRETCH_MIN[wd]+' min</span>'));
-    ss.appendChild(el("div","notice","<strong>Gentle.</strong> "+esc(STRETCH_RULE)+" Nothing behind the torso line for the shoulder; no long forward folds for the hamstrings."));
+    ss.appendChild(el("div","blockhead",'<span class="num">'+(n++)+'</span><h2>Stretch</h2><span class="sub">~'+stretchMin+' min</span>'));
+    ss.appendChild(el("div","notice","<strong>Stretching.</strong> "+esc(STRETCH_RULE)+" Nothing behind the torso line for the shoulder; no long forward folds for the hamstrings."));
     for(var q=0;q<stretchList.length;q++) ss.appendChild(exCard(stretchList[q], q, date, e, false));
     root.appendChild(ss);
+  }
+
+  /* ---- steam room (return session only) ---- */
+  if(ov.steam){
+    var sm = el("section","block");
+    sm.appendChild(el("div","blockhead",'<span class="num">'+(n++)+'</span><h2>Steam room</h2><span class="sub">'+STEAM_EX.reps+'</span>'));
+    sm.appendChild(exCard(STEAM_EX, 0, date, e, false));
+    root.appendChild(sm);
   }
 
   /* ---- optional yoga, Sundays ---- */
@@ -1618,7 +1641,7 @@ function renderLog(){
 function allExercises(){
   /* Post-block lists first, so where an id is shared the original name wins
      for old entries; new ids get their new names. */
-  var all = {}, lists=[LOWER_A,LOWER_A_G,UPPER_A_P,UPPER_B_P,LOWER_B,LOWER_B_G,STRETCH_WED,STRETCH_FRI,WARMUP_LOWER,[YOGA_SUN_EX],CORE_A,CORE_B,SHOULDER_DAILY,[HLR_EX],
+  var all = {}, lists=[LOWER_A,LOWER_A_G,UPPER_A_P,UPPER_B_P,LOWER_B,LOWER_B_G,STRETCH_WED,STRETCH_FRI,WARMUP_LOWER,[YOGA_SUN_EX,STEAM_EX],CORE_A,CORE_B,SHOULDER_DAILY,[HLR_EX],
                        WARM_UP,UPPER_A,LOWER,UPPER_B,FULL,CORE,[CALF_EX,YOGA_EX]];
   for(var i=0;i<lists.length;i++) for(var j=0;j<lists[i].length;j++) all[lists[i][j].id]=lists[i][j];
   all.fly = all.fly || {id:"fly", n:"Cable fly"};          // retired 2026-10-05; old entries still export by name
@@ -1854,7 +1877,7 @@ function boot(){
 }
 /* Keep BUILD in step with CACHE in sw.js. The footer shows both; if they
    differ the page is stale and the new version is still on its way. */
-var BUILD = "v32";
+var BUILD = "v33";
 function showCacheVersion(){
   if(!("caches" in window)) return;
   caches.keys().then(function(keys){
