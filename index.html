@@ -305,6 +305,9 @@ var V = {
   bpa:"https://www.youtube.com/watch?v=D-3bRfprMGI", ber:"https://www.youtube.com/watch?v=4HqMXMn3FBk",
   pec:"https://www.youtube.com/watch?v=hZ0CGRaKwbQ",
   bss:"https://www.youtube.com/watch?v=Tu9PRGacsKg", ck:"https://www.youtube.com/watch?v=5jJNfIlKTmg",   // oembed-checked 2026-11-18
+  hfs:"https://www.youtube.com/watch?v=fnQbF1AVshM", sqs:"https://www.youtube.com/watch?v=uRRwljV-Nlk",   // stretches, oembed-checked 2026-11-18
+  f4s:"https://www.youtube.com/watch?v=-g0nuyTHMrI", cls:"https://www.youtube.com/watch?v=TXVLJ3WH8Zg",
+  cps:"https://www.youtube.com/watch?v=eqVMAPM00DM",
   yoga:"https://www.youtube.com/watch?v=LNOucekw2co", yogas:"https://www.youtube.com/watch?v=vhLbp8ibmEE"
 };
 
@@ -454,6 +457,28 @@ var YOGA_POST_EX = BW(P(ex("yoga","Yoga — 7 Minute Post-Run",1,"~8 min","Mat, 
   "If downward dog comes up, put your hands on a bench or swap in child's pose. No chaturanga, no binds behind the back."),
   {why:"Keeps hips and calves loose after a week of stairs and heavy legs, and the quiet few minutes are part of recovery."}));
 var YOGA_MIN_POST = 8;
+
+/* Warm-up and gentle stretching (Beck, 2026-11-18). Stretches at 3–4/10, slow
+   breathing, no bouncing. Shoulder: nothing behind the torso line, nothing loaded.
+   Hamstrings: no long forward folds. */
+var STRETCH_RULE = "Gentle: about 3–4/10, a stretch and never pain. Breathe slowly, no bouncing.";
+var S_HF  = BW(ex("hfs","Half-kneeling hip flexor stretch",2,"45 s / side","Kneel on a pad, other foot forward","Tuck the pelvis slightly and squeeze the glute on the kneeling side; the stretch is at the front of that hip. Don't arch the lower back. "+STRETCH_RULE,V.hfs));
+var S_QD  = BW(ex("sqs","Side-lying quad stretch",1,"45 s / side","Floor, on your side","Bend the top knee and draw the heel toward the glute, knees together, hips stacked. A strap or towel round the ankle if reaching back pulls on the shoulder. "+STRETCH_RULE,V.sqs));
+var S_F4  = BW(ex("f4s","Supine figure-4 stretch",1,"45 s / side","On your back, knees bent","Cross one ankle over the other knee and draw the legs in until the outer hip and glute stretch. "+STRETCH_RULE,V.f4s));
+var S_SOL = BW(ex("sol","Bent-knee wall calf stretch (soleus)",1,"45 s / side","Hands on a wall, one foot back","Back heel down, then bend the back knee until the stretch moves low in the calf. "+STRETCH_RULE,V.cls));
+var S_GAS = BW(ex("gas","Straight-knee wall calf stretch",1,"45 s / side","Hands on a wall, one foot back","Back knee straight, heel down, lean in until the upper calf stretches. "+STRETCH_RULE,V.cls));
+var S_CP  = BW(ex("cps","Child's pose, knees wide",1,"60 s","Mat","Sit the hips back toward the heels. Arms by your sides or resting forward on the floor, never pressing into them. "+STRETCH_RULE,V.cps));
+var STRETCH_WED = [S_HF, S_QD, S_F4, S_SOL, S_CP];
+var STRETCH_FRI = [S_HF, S_F4, S_GAS];
+var STRETCH_SAT = [S_HF, S_SOL];
+var STRETCH_MIN = {3:7, 5:5, 6:2};
+var WARMUP_LOWER = [
+  BW(ex("wul","Easy cardio warm-up",1,"3–5 min","StairMaster at L4–5 or a bike","Easy, just enough to warm up. It doesn't count toward stair volume.",null)),
+  BW(ex("wss","Bodyweight split squat",1,"5 / side","Floor, no bench","Slow and shallow to start, deeper by the last rep.",null))
+];
+var WARMUP_LOWER_MIN = 4;
+var YOGA_SUN_EX = BW(ex("yogs","Yoga — Heart And Hips (optional)",1,"8–26 min","Mat, quiet space","Optional, gentle. The full 26-minute Heart And Hips practice, or the 8-minute post-run session if time is short. Sunday stays a rest day.",V.yoga,
+  "If downward dog comes up, put your hands on a bench or swap in child's pose. No chaturanga, no binds behind the back."));
 
 var WARM_UP = [
   ex("bpa","Band pull-apart",1,"15","Light band","Pull the shoulders DOWN away from the ears. Don't shrug.",V.bpa),
@@ -1017,7 +1042,10 @@ function renderPostToday(root, date, e){
   var plan = {gym:base.gym, gymMin:base.gymMin, stair:base.stair, liftFirst:!!base.liftFirst,
     list:base.list.map(function(x){ var c={}; for(var k in x) c[k]=x[k]; c.sets=postSets(x, pw); return c; })};
   var st = stairSession(plan.stair, pw);
-  var total = (ov.noDaily ? 0 : SHOULDER_MIN + HLR_MIN + CALF_MIN) + st.min + (plan.gym ? plan.gymMin : 0) + (wd === 6 ? YOGA_MIN_POST : 0);
+  var lowerDay = !!plan.gym && (wd === 1 || wd === 5);
+  var stretchList = wd === 3 ? STRETCH_WED : wd === 6 ? STRETCH_SAT : (wd === 5 && plan.gym) ? STRETCH_FRI : null;
+  var total = (ov.noDaily ? 0 : SHOULDER_MIN + HLR_MIN + CALF_MIN) + st.min + (plan.gym ? plan.gymMin : 0) + (wd === 6 ? YOGA_MIN_POST : 0)
+            + (lowerDay ? WARMUP_LOWER_MIN : 0) + (stretchList ? STRETCH_MIN[wd] : 0);
 
   var head = el("div","dayhead");
   var prevBtn = el("button","daynav","‹");
@@ -1080,6 +1108,13 @@ function renderPostToday(root, date, e){
   }
 
   function gymBlock(){
+    if(lowerDay){
+      var sw = el("section","block");
+      sw.appendChild(el("div","blockhead",'<span class="num">'+(n++)+'</span><h2>Warm-up</h2><span class="sub">~'+WARMUP_LOWER_MIN+' min</span>'));
+      sw.appendChild(el("div","notice","At 4 AM the hips are at their stiffest. Warm them before the first heavy set."));
+      for(var w=0;w<WARMUP_LOWER.length;w++) sw.appendChild(exCard(WARMUP_LOWER[w], w, date, e, false));
+      root.appendChild(sw);
+    }
     var s3 = el("section","block");
     s3.appendChild(el("div","blockhead",'<span class="num">'+(n++)+'</span><h2>'+esc(plan.gym)+'</h2><span class="sub">~'+plan.gymMin+' min</span>'));
     if(plan.list.length && plan.list[0].sets >= 3 && !/^Core/.test(plan.gym)){
@@ -1099,6 +1134,23 @@ function renderPostToday(root, date, e){
     if(!showStairs) root.appendChild(stairsBlock(date, e, st, n++));
   }
 
+
+  /* ---- gentle stretching: Wed after core, Fri after Lower B, Sat before yoga ---- */
+  if(stretchList){
+    var ss = el("section","block");
+    ss.appendChild(el("div","blockhead",'<span class="num">'+(n++)+'</span><h2>Stretch</h2><span class="sub">~'+STRETCH_MIN[wd]+' min</span>'));
+    ss.appendChild(el("div","notice","<strong>Gentle.</strong> "+esc(STRETCH_RULE)+" Nothing behind the torso line for the shoulder; no long forward folds for the hamstrings."));
+    for(var q=0;q<stretchList.length;q++) ss.appendChild(exCard(stretchList[q], q, date, e, false));
+    root.appendChild(ss);
+  }
+
+  /* ---- optional yoga, Sundays ---- */
+  if(wd === 0){
+    var su = el("section","block");
+    su.appendChild(el("div","blockhead",'<span class="num">'+(n++)+'</span><h2>Yoga — optional</h2><span class="sub">'+YOGA_SUN_EX.reps+'</span>'));
+    su.appendChild(exCard(YOGA_SUN_EX, 0, date, e, false));
+    root.appendChild(su);
+  }
 
   /* ---- yoga, Saturdays ---- */
   if(wd === 6){
@@ -1566,7 +1618,7 @@ function renderLog(){
 function allExercises(){
   /* Post-block lists first, so where an id is shared the original name wins
      for old entries; new ids get their new names. */
-  var all = {}, lists=[LOWER_A,LOWER_A_G,UPPER_A_P,UPPER_B_P,LOWER_B,LOWER_B_G,CORE_A,CORE_B,SHOULDER_DAILY,[HLR_EX],
+  var all = {}, lists=[LOWER_A,LOWER_A_G,UPPER_A_P,UPPER_B_P,LOWER_B,LOWER_B_G,STRETCH_WED,STRETCH_FRI,WARMUP_LOWER,[YOGA_SUN_EX],CORE_A,CORE_B,SHOULDER_DAILY,[HLR_EX],
                        WARM_UP,UPPER_A,LOWER,UPPER_B,FULL,CORE,[CALF_EX,YOGA_EX]];
   for(var i=0;i<lists.length;i++) for(var j=0;j<lists[i].length;j++) all[lists[i][j].id]=lists[i][j];
   all.fly = all.fly || {id:"fly", n:"Cable fly"};          // retired 2026-10-05; old entries still export by name
@@ -1665,13 +1717,14 @@ function renderPostPlan(root){
     ["Thu","Easy 70 at L6, after lifting","Upper B — vertical pull + landmine"],
     ["Fri","—","Lower B — hip thrust, abduction, bridge holds, cable kickback (from wk 2)"],
     ["Sat","Quality #2 — tempo (benchmark in wk 4, 8; wk 4's is on Fri 18 Dec)","Core + carries, then 8 min yoga"],
-    ["Sun","Off","Off"]
+    ["Sun","Off","Off (optional gentle yoga)"]
   ];
   var h = "<thead><tr><th>Day</th><th>Stairs</th><th>Gym</th></tr></thead><tbody>";
   for(var j=0;j<rows.length;j++) h += '<tr><td class="wk">'+rows[j][0]+'</td><td>'+rows[j][1]+'</td><td>'+rows[j][2]+'</td></tr>';
   t2.innerHTML = h + "</tbody>";
   sc2.appendChild(t2); wk.appendChild(sc2);
   wk.appendChild(el("div","notice","<strong>Every day:</strong> the daily block, ~11 min: shoulder work, hanging leg raises 3 × 10, standing calf raise 2 × 12–15."));
+  wk.appendChild(el("div","notice","<strong>Warm-up and stretching:</strong> a 4-min warm-up before Lower A and Lower B; gentle stretches after Wed core (~7 min), after Lower B (~5 min) and before Saturday yoga (~2 min); optional yoga on Sunday."));
   root.appendChild(wk);
 
   var s = el("section","block");
@@ -1801,7 +1854,7 @@ function boot(){
 }
 /* Keep BUILD in step with CACHE in sw.js. The footer shows both; if they
    differ the page is stale and the new version is still on its way. */
-var BUILD = "v31";
+var BUILD = "v32";
 function showCacheVersion(){
   if(!("caches" in window)) return;
   caches.keys().then(function(keys){
