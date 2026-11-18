@@ -393,7 +393,7 @@ var UPPER_B_P = [
   ex("lmp","Landmine press",3,"6–10 / side","Half-kneeling, one side at a time","Press up and slightly forward. Ribs down, glute squeezed on the kneeling side.",V.lmp,
      "Shoulder gate: progress only after a clean shoulder note on this lift."),
   ex("sar","Single-arm row",3,"8–10 / side","Cable or machine","Let the shoulder blade travel at the bottom, then pull.",V.sar),
-  ex("sap","Straight-arm pulldown",2,"12–15","Cable","Arms stay straight. Feel it in the armpit, not the triceps.",V.sap),
+  /* Straight-arm pulldown dropped 2026-11-18 (Beck): Thursday has to finish by 5:15, and it overlaps the lat pulldown most. */
   ex("rpd","Reverse pec deck",3,"15","Machine","Light. Thumbs up, squeeze the rear delts.",V.rpd),
   ex("cur","Incline DB or cable curl",2,"10–12","—","No swinging.",null),
   ex("rp","Rope pushdown",2,"12–15","Cable — not dips","Elbows locked to your sides.",V.rp),
@@ -497,9 +497,9 @@ var STEAM_EX = BW(ex("stm","Steam room",1,"5–8 min","After the session, never 
   "Short on purpose: just off an illness, probably a little dehydrated, and on the 3 AM Adderall — heat and a stimulant push heart rate the same way."));
 var STEAM_MIN = 8;
 
-/* Lateral raise from post week 2, Tue (Upper A) and Wed (Core A) (Beck, 2026-11-18): side-delt
+/* Lateral raise from post week 2, Wednesdays only, 3 sets (Beck, 2026-11-18; moved off Tuesday so it ends by 5:15): side-delt
    width frames the waist. Light, below shoulder height, scapular plane; shoulder gate applies. */
-var LAT_RAISE = P(ex("clr","Cable lateral raise",2,"12–15","Low cable, one arm at a time, D-handle. Light dumbbells if the cable is taken.",
+var LAT_RAISE = P(ex("clr","Cable lateral raise",3,"12–15","Low cable, one arm at a time, D-handle. Light dumbbells if the cable is taken.",
   "Raise about 30° forward of straight out to the side, thumb slightly up, to just below shoulder height. Lower slowly over 2–3 seconds.",V.clr,
   "Very light: the side shoulder tires fast. Never above shoulder height, whatever the video does. Stop on any pinch. Scapular-plane explainer: "+V.clrs),
   {why:"Wider shoulders make the waist look narrower. Kept light, low and in the scapular plane for the torn cuff."});
@@ -594,7 +594,7 @@ var POST_DAYS = {
   1:{gym:"Lower A — strength",       list:LOWER_A,    gymMin:60, stair:"p-none"},
   2:{gym:"Upper A",                  list:UPPER_A_P,  gymMin:38, stair:"p-easy", liftFirst:true},
   3:{gym:"Core block A",             list:CORE_A,     gymMin:10, stair:"p-intervals"},
-  4:{gym:"Upper B",                  list:UPPER_B_P,  gymMin:42, stair:"p-easy", liftFirst:true},
+  4:{gym:"Upper B",                  list:UPPER_B_P,  gymMin:39, stair:"p-easy", liftFirst:true},
   5:{gym:"Lower B — glutes",         list:LOWER_B,    gymMin:50, stair:"p-none"},
   6:{gym:"Core + carries",           list:CORE_B,     gymMin:12, stair:"p-tempo"},
   0:{gym:null, list:[], gymMin:0, stair:"p-rest"}
@@ -1098,8 +1098,7 @@ function renderPostToday(root, date, e){
   var base = pw === 0 ? POST_DAYS[0] : POST_DAYS[wd];
   if(pw >= 2 && wd === 1) base = {gym:"Lower A — strength + glutes", list:LOWER_A_G, gymMin:69, stair:base.stair, liftFirst:base.liftFirst};
   if(pw >= 2 && wd === 5) base = {gym:base.gym, list:(pw >= 7 ? LOWER_B_G7 : LOWER_B_G), gymMin:base.gymMin, stair:base.stair, liftFirst:base.liftFirst};
-  if(pw >= 2 && wd === 2) base = {gym:base.gym, list:base.list.concat([LAT_RAISE]), gymMin:base.gymMin+4, stair:base.stair, liftFirst:base.liftFirst};
-  if(pw >= 2 && wd === 3) base = {gym:"Core block A + lateral raise", list:base.list.concat([LAT_RAISE]), gymMin:base.gymMin+4, stair:base.stair, liftFirst:base.liftFirst};
+  if(pw >= 2 && wd === 3) base = {gym:"Core block A + lateral raise", list:base.list.concat([LAT_RAISE]), gymMin:base.gymMin+6, stair:base.stair, liftFirst:base.liftFirst};
   var ov = POST_OVERRIDE[date] || {}, travel = TRAVEL[date];
   if(ov.session) ph = {name:"Optional return session", hold:false, note:ov.note};
   if(ov.gym === null) base = {gym:null, list:[], gymMin:0, stair:ov.stair || base.stair, liftFirst:false};
@@ -1873,8 +1872,8 @@ function renderPostPlan(root){
   var t2 = el("table","ptable");
   var rows = [
     ["Mon","—","Lower A — leg press, machine squat, Bulgarian split squat, back extension, hip abduction (split squat and abduction from wk 2)"],
-    ["Tue","Easy 70 at L6, after lifting","Upper A — horizontal push/pull (+ lateral raise from wk 2)"],
-    ["Wed","Quality #1 — intervals","Core block A (+ lateral raise from wk 2), then stretch"],
+    ["Tue","Easy 70 at L6, after lifting","Upper A — horizontal push/pull"],
+    ["Wed","Quality #1 — intervals","Core block A (+ lateral raise 3 × 12–15 from wk 2), then stretch"],
     ["Thu","Easy 70 at L6, after lifting","Upper B — vertical pull + landmine"],
     ["Fri","—","Lower B — hip thrust, abduction, bridge holds, cable kickback (from wk 2)"],
     ["Sat","Quality #2 — tempo (benchmark in wk 4, 8; wk 4's is on Fri 18 Dec)","Core + carries, then 8 min yoga"],
@@ -2015,7 +2014,7 @@ function boot(){
 }
 /* Keep BUILD in step with CACHE in sw.js. The footer shows both; if they
    differ the page is stale and the new version is still on its way. */
-var BUILD = "v35";
+var BUILD = "v36";
 function showCacheVersion(){
   if(!("caches" in window)) return;
   caches.keys().then(function(keys){
